@@ -834,7 +834,11 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
 <body>
 <script>
     var data = " + JsonConvert.SerializeObject(value, Formatting.Indented, JsonCodec.ToSettings) + @";
-    window.location = '/web/index.html#/streams/' + data.streamId;
+    var redirectLocation = '/web/index.html#/streams/' + data.streamId
+    if(data.hasOwnProperty('eventNumber')){
+        redirectLocation += '/' + data.eventNumber;
+    }
+    window.location = redirectLocation;
 </script>
 </body>
 </html>
