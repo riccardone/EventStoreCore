@@ -25,7 +25,6 @@ namespace EventStore.Core.Services.Storage.ReaderIndex
     public class AllReader : IAllReader
     {
         private readonly IIndexBackend _backend;
-
         public AllReader(IIndexBackend backend)
         {
             Ensure.NotNull(backend, "backend");
@@ -48,7 +47,6 @@ namespace EventStore.Core.Services.Storage.ReaderIndex
                 while (count < maxCount)
                 {
                     reader.Reposition(nextCommitPos);
-
                     SeqReadResult result;
                     while ((result = reader.TryReadNext()).Success && !IsCommitAlike(result.LogRecord))
                     {
