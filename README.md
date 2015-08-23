@@ -56,8 +56,8 @@ From the root of the repository:
 Versions must be complete four part idenfitiers valid for use on a .NET assembly.
 
 Valid configurations are:
-    debug
-    release
+- debug
+- release
 
 The OS distribution and version will be detected automatically unless it is
 overriden as the last argument. This script expects to find libjs1.[so|dylib]
@@ -71,9 +71,10 @@ in particular, we have included a pre-built version of libjs1.so which will
 link to the correct version of libc on Amazon Linux 2015.03.
 
 Currently the supported versions without needing to build libjs1 from source are:
-    ubuntu-14.04              (Ubuntu Trusty)
-    amazon-2015.03            (Amazon Linux 2015.03)
+- ubuntu-14.04 (Ubuntu Trusty)
+- amazon-2015.03 (Amazon Linux 2015.03)
 
+Note that it is no longer possible to build x86 builds of Event Store.
 
 ###Debug Builds on Windows / .NET
 
