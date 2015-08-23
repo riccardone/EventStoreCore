@@ -60,17 +60,17 @@ Valid configurations are:
 - release
 
 The OS distribution and version will be detected automatically unless it is
-overriden as the last argument. This script expects to find libjs1.[so|dylib]
-in the src/libs/x64/distroname-distroversion/ directory, built using the scripts
-in the scripts/build-js1/ directory. Note that overriding this may result in
+overriden as the last argument. This script expects to find `libjs1.[so|dylib]`
+in the `src/libs/x64/distroname-distroversion/` directory, built using the scripts
+in the `scripts/build-js1/` directory. Note that overriding this may result in
 crashes using Event Store.
 
 *The only supported Linux for production use at the moment is Ubuntu 14.04 LTS.*
 However, since several people have asked for builds compatible with Amazon Linux
-in particular, we have included a pre-built version of libjs1.so which will
+in particular, we have included a pre-built version of `libjs1.so` which will
 link to the correct version of libc on Amazon Linux 2015.03.
 
-Currently the supported versions without needing to build libjs1 from source are:
+Currently the supported versions without needing to build `libjs1` from source are:
 - ubuntu-14.04 (Ubuntu Trusty)
 - amazon-2015.03 (Amazon Linux 2015.03)
 
