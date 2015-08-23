@@ -1,7 +1,7 @@
 
 #Event Store
 
-**The documentation has now moved to the <a href="https://github.com/EventStore/EventStore/wiki">wiki in this repository</a>.** For a quick start, look <a href="https://github.com/EventStore/EventStore/wiki/Running-the-Event-Store">here</a>.
+**The main documentation has moved to <a href="https://docs.geteventstore.com">https://docs.geteventstore.com</a>.**
 
 <em>**Development is on the branch aimed at the next release (usually prefixed with release-v0.0.0). Please make any pull requests to this branch**.</em>
 
