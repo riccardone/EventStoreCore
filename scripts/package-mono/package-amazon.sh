@@ -81,6 +81,8 @@ mkdir $PACKAGEDIRECTORY
 
 pushd $SCRIPTDIR/../../bin/clusternode/
 
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MONOPREFIX/lib/pkgconfig
+
 mkbundle -c -o clusternode.c -oo clusternode.a \
 	EventStore.ClusterNode.exe \
 	EventStore.Rags.dll \
