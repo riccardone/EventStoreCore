@@ -69,9 +69,11 @@ namespace EventStore.Core.Services.Transport.Http.Controllers
                     var clusterInfo = Codec.Json.From<ClusterInfoDto>(response.Body);
                     if (clusterInfo == null)
                     {
-                        var msg = string.Format("Received as RESPONSE invalid ClusterInfo from [{0}]. Content-Type: {1}, Body:\n{2}.",
+                        var msg = string.Format("Received as RESPONSE invalid ClusterInfo from [{0}]. Content-Type: {1}, Body: {2}",
                                                 url, response.ContentType, response.Body);
-                        Log.Error(msg);
+                        Log.Error(string.Format("Received as RESPONSE invalid ClusterInfo from [{0}]. Content-Type: {1}",
+                                                url, response.ContentType));
+                        Log.Error(string.Format("Body: {0}", response.Body));
                         Publish(new GossipMessage.GossipSendFailed(msg, endPoint));
                         return;
                     }

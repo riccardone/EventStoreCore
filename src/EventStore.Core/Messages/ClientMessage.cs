@@ -1363,5 +1363,40 @@ namespace EventStore.Core.Messages
                 return String.Format("Result: {0}, Error: {1}, TotalTime: {2}, TotalSpaceSaved: {3}", Result, Error, TotalTime, TotalSpaceSaved);
             }
         }
+
+        public class AmqpMessage : Message
+        {
+            private static readonly int TypeId = Interlocked.Increment(ref NextMsgId);
+            public override int MsgTypeId { get { return TypeId; } }
+
+            private readonly IEnvelope _envelope;
+            private readonly string _name;
+            private readonly string _partition;
+
+            public AmqpMessage(IEnvelope envelope, string name, string partition)
+            {
+                if (envelope == null) throw new ArgumentNullException("envelope");
+                if (name == null) throw new ArgumentNullException("name");
+                if (partition == null) throw new ArgumentNullException("partition");
+                _envelope = envelope;
+                _name = name;
+                _partition = partition;
+            }
+
+            public string Name
+            {
+                get { return _name; }
+            }
+
+            public IEnvelope Envelope
+            {
+                get { return _envelope; }
+            }
+
+            public string Partition
+            {
+                get { return _partition; }
+            }
+        }
     }
 }
