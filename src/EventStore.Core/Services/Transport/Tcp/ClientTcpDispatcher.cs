@@ -135,8 +135,8 @@ namespace EventStore.Core.Services.Transport.Tcp
         {
             // we forwarding with InternalCorrId, not client's CorrelationId!!!
             return msg.Login != null && msg.Password != null
-                ? new TcpPackage(command, TcpFlags.Authenticated, msg.InternalCorrId, msg.Login, msg.Password, dto.Serialize())
-                : new TcpPackage(command, TcpFlags.None, msg.InternalCorrId, null, null, dto.Serialize());
+                ? new TcpPackage(command, AmqpFlags.Authenticated, msg.InternalCorrId, msg.Login, msg.Password, dto.Serialize())
+                : new TcpPackage(command, AmqpFlags.None, msg.InternalCorrId, null, null, dto.Serialize());
         }
 
         private static ClientMessage.WriteEventsCompleted UnwrapWriteEventsCompleted(TcpPackage package, IEnvelope envelope)

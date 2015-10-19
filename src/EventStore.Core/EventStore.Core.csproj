@@ -167,6 +167,7 @@
     <Compile Include="Messages\InternalAuthenticationProviderMessages.cs" />
     <Compile Include="Messages\IQueueAffineMessage.cs" />
     <Compile Include="Messages\TcpClientMessageDtoExtensions.cs" />
+    <Compile Include="Messages\AmqpMessage.cs" />
     <Compile Include="Messaging\CallbackEnvelope.cs" />
     <Compile Include="Helpers\IODispatcher.cs" />
     <Compile Include="Messages\UserManagementMessage.cs" />
@@ -247,6 +248,12 @@
     <Compile Include="Services\SystemNames.cs" />
     <Compile Include="Services\RequestManager\Managers\TransactionCommitTwoPhaseRequestManager.cs" />
     <Compile Include="Services\TcpSendService.cs" />
+    <Compile Include="Services\Transport\Amqp\AmqpService.cs" />
+    <Compile Include="Services\Transport\Amqp\AmqpConnectionManager.cs" />
+    <Compile Include="Services\Transport\Amqp\IAmqpDispatcher.cs" />
+    <Compile Include="Services\Transport\Amqp\AmqpPackage.cs" />
+    <Compile Include="Services\Transport\Amqp\AmqpCommand.cs" />
+    <Compile Include="Services\Transport\Amqp\AmqpDispatcher.cs" />
     <Compile Include="Services\Transport\Http\Authentication\HttpAuthenticationProvider.cs" />
     <Compile Include="Services\Transport\Http\Authentication\BasicHttpAuthenticationProvider.cs" />
     <Compile Include="Services\Transport\Http\Authentication\AnonymousHttpAuthenticationProvider.cs" />

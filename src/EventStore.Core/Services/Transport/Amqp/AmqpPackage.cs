@@ -1,8 +1,7 @@
 using System;
-using System.Text;
 using EventStore.Common.Utils;
 
-namespace EventStore.Core.Services.Transport.Tcp
+namespace EventStore.Core.Services.Transport.Amqp
 {
     [Flags]
     public enum AmqpFlags: byte
@@ -11,7 +10,7 @@ namespace EventStore.Core.Services.Transport.Tcp
         Authenticated = 0x01,
     }
 
-    public struct TcpPackage
+    public struct AmqpPackage
     {
         public const int CommandOffset = 0;
         public const int FlagsOffset = CommandOffset + 1;
@@ -20,19 +19,19 @@ namespace EventStore.Core.Services.Transport.Tcp
 
         public const int MandatorySize = AuthOffset;
 
-        public readonly TcpCommand Command;
+        public readonly AmqpCommand Command;
         public readonly AmqpFlags Flags;
         public readonly Guid CorrelationId;
         public readonly string Login;
         public readonly string Password;
         public readonly ArraySegment<byte> Data;
 
-        public static TcpPackage FromArraySegment(ArraySegment<byte> data)
+        public static AmqpPackage FromArraySegment(ArraySegment<byte> data)
         {
             if (data.Count < MandatorySize)
                 throw new ArgumentException(string.Format("ArraySegment too short, length: {0}", data.Count), "data");
 
-            var command = (TcpCommand) data.Array[data.Offset + CommandOffset];
+            var command = (AmqpCommand)data.Array[data.Offset + CommandOffset];
             var flags = (AmqpFlags) data.Array[data.Offset + FlagsOffset];
 
             var guidBytes = new byte[16];
@@ -57,7 +56,7 @@ namespace EventStore.Core.Services.Transport.Tcp
                 headerSize += 1 + loginLen + 1 + passLen;
             }
 
-            return new TcpPackage(command,
+            return new AmqpPackage(command,
                                   flags,
                                   correlationId,
                                   login, 
@@ -65,22 +64,22 @@ namespace EventStore.Core.Services.Transport.Tcp
                                   new ArraySegment<byte>(data.Array, data.Offset + headerSize, data.Count - headerSize));
         }
 
-        public TcpPackage(TcpCommand command, Guid correlationId, byte[] data)
+        public AmqpPackage(AmqpCommand command, Guid correlationId, byte[] data)
             : this(command, AmqpFlags.None, correlationId, null, null, data)
         {
         }
 
-        public TcpPackage(TcpCommand command, Guid correlationId, ArraySegment<byte> data)
+        public AmqpPackage(AmqpCommand command, Guid correlationId, ArraySegment<byte> data)
             : this(command, AmqpFlags.None, correlationId, null, null, data)
         {
         }
 
-        public TcpPackage(TcpCommand command, AmqpFlags flags, Guid correlationId, string login, string password, byte[] data)
+        public AmqpPackage(AmqpCommand command, AmqpFlags flags, Guid correlationId, string login, string password, byte[] data)
             : this(command, flags, correlationId, login, password, new ArraySegment<byte>(data ?? Empty.ByteArray))
         {
         }
 
-        public TcpPackage(TcpCommand command, AmqpFlags flags, Guid correlationId, string login, string password, ArraySegment<byte> data)
+        public AmqpPackage(AmqpCommand command, AmqpFlags flags, Guid correlationId, string login, string password, ArraySegment<byte> data)
         {
             if ((flags & AmqpFlags.Authenticated) != 0)
             {
