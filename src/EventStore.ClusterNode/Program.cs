@@ -124,18 +124,12 @@ namespace EventStore.ClusterNode
 
             var runProjections = opts.RunProjections;
 
-            Log.Info("\n{0,-25} {1}\n"
-                    + "{2,-25} {3}\n"
-                    + "{4,-25} {5} (0x{5:X})\n"
-                    + "{6,-25} {7} (0x{7:X})\n"
-                    + "{8,-25} {9} (0x{9:X})\n"
-                    + "{10,-25} {11} (0x{11:X})\n",
-                    "INSTANCE ID:", vNodeSettings.NodeInfo.InstanceId,
-                    "DATABASE:", db.Config.Path,
-                    "WRITER CHECKPOINT:", db.Config.WriterCheckpoint.Read(),
-                    "CHASER CHECKPOINT:", db.Config.ChaserCheckpoint.Read(),
-                    "EPOCH CHECKPOINT:", db.Config.EpochCheckpoint.Read(),
-                    "TRUNCATE CHECKPOINT:", db.Config.TruncateCheckpoint.Read());
+            Log.Info("{0,-25} {1}", "INSTANCE ID:", vNodeSettings.NodeInfo.InstanceId);
+            Log.Info("{0,-25} {1}", "DATABASE:", db.Config.Path);
+            Log.Info("{0,-25} {1} (0x{1:X})", "WRITER CHECKPOINT:", db.Config.WriterCheckpoint.Read());
+            Log.Info("{0,-25} {1} (0x{1:X})", "CHASER CHECKPOINT:", db.Config.ChaserCheckpoint.Read());
+            Log.Info("{0,-25} {1} (0x{1:X})", "EPOCH CHECKPOINT:", db.Config.EpochCheckpoint.Read());
+            Log.Info("{0,-25} {1} (0x{1:X})", "TRUNCATE CHECKPOINT:", db.Config.TruncateCheckpoint.Read());
 
             var enabledNodeSubsystems = runProjections >= ProjectionType.System
                 ? new[] { NodeSubsystems.Projections }
@@ -227,11 +221,13 @@ namespace EventStore.ClusterNode
 
             var intTcpPort = options.IntTcpPortAdvertiseAs > 0 ? options.IntTcpPortAdvertiseAs : options.IntTcpPort;
             var intTcpEndPoint = new IPEndPoint(intIpAddressToAdvertise, intTcpPort);
-            var intSecureTcpEndPoint = options.IntSecureTcpPort > 0 ? new IPEndPoint(intIpAddressToAdvertise, intTcpPort) : null;
+            var intSecureTcpPort = options.IntSecureTcpPortAdvertiseAs > 0 ? options.IntSecureTcpPortAdvertiseAs : options.IntSecureTcpPort;
+            var intSecureTcpEndPoint = new IPEndPoint(intIpAddressToAdvertise, intSecureTcpPort);
 
             var extTcpPort = options.ExtTcpPortAdvertiseAs > 0 ? options.ExtTcpPortAdvertiseAs : options.ExtTcpPort;
             var extTcpEndPoint = new IPEndPoint(extIpAddressToAdvertise, extTcpPort);
-            var extSecureTcpEndPoint = options.ExtSecureTcpPort > 0 ? new IPEndPoint(extIpAddressToAdvertise, extTcpPort) : null;
+            var extSecureTcpPort = options.ExtSecureTcpPortAdvertiseAs > 0 ? options.ExtSecureTcpPortAdvertiseAs : options.ExtSecureTcpPort;
+            var extSecureTcpEndPoint = new IPEndPoint(extIpAddressToAdvertise, extSecureTcpPort);
             
             var intHttpPort = options.IntHttpPortAdvertiseAs > 0 ? options.IntHttpPortAdvertiseAs : options.IntHttpPort;
             var extHttpPort = options.ExtHttpPortAdvertiseAs > 0 ? options.ExtHttpPortAdvertiseAs : options.ExtHttpPort;
@@ -278,6 +274,7 @@ namespace EventStore.ClusterNode
                     !options.SkipDbVerify, options.MaxMemTableSize,
                     options.StartStandardProjections,
                     options.DisableHTTPCaching,
+                    options.Index,
                     options.EnableHistograms,
                     options.IndexCacheDepth);
         }

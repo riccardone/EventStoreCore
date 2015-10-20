@@ -61,7 +61,7 @@ namespace EventStore.TestClient.Commands
                         },
                         false);
                     var package = new TcpPackage(TcpCommand.WriteEvents, 
-                                                 login == null ? TcpFlags.None : TcpFlags.Authenticated,
+                                                 login == null ? AmqpFlags.None : AmqpFlags.Authenticated,
                                                  Guid.NewGuid(), 
                                                  login,
                                                  pass,

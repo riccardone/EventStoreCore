@@ -84,6 +84,7 @@ namespace EventStore.Core.Util
         public static readonly bool DisableScavengeMergeDefault = false;
 
         public const string DbPathDescr = "The path the db should be loaded/saved to.";
+        public const string IndexPathDescr = "The path the index should be loaded/saved to.";
 
         public const string InMemDbDescr = "Keep everything in memory, no directories or files are created.";
         public const bool   InMemDbDefault = false;
@@ -207,6 +208,9 @@ namespace EventStore.Core.Util
         public const string ExternalIpAdvertiseAsDescr = "Advertise External Tcp Address As.";
         public static readonly IPAddress ExternalIpAdvertiseAsDefault = null;
 
+        public const string ExternalSecureTcpPortAdvertiseAsDescr = "Advertise Secure External Tcp Port As.";
+        public static readonly int ExternalSecureTcpPortAdvertiseAsDefault = 0;
+
         public const string ExternalTcpPortAdvertiseAsDescr = "Advertise External Tcp Port As.";
         public static readonly int ExternalTcpPortAdvertiseAsDefault = 0;
 
@@ -218,6 +222,9 @@ namespace EventStore.Core.Util
 
         public const string InternalTcpPortAdvertiseAsDescr = "Advertise Internal Tcp Port As.";
         public static readonly int InternalTcpPortAdvertiseAsDefault = 0;
+
+        public const string InternalSecureTcpPortAdvertiseAsDescr = "Advertise Secure Internal Tcp Port As.";
+        public static readonly int InternalSecureTcpPortAdvertiseAsDefault = 0;
 
         public const string InternalHttpPortAdvertiseAsDescr = "Advertise Internal Http Port As.";
         public static readonly int InternalHttpPortAdvertiseAsDefault = 0;
