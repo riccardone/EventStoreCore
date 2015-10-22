@@ -39,22 +39,22 @@ namespace EventStore.Core.Services.Transport.Amqp
             var correlationId = new Guid(guidBytes);
 
             var headerSize = MandatorySize;
-            string login = null;
-            string pass = null;
-            if ((flags & AmqpFlags.Authenticated) != 0)
-            {
-                var loginLen = data.Array[data.Offset + AuthOffset];
-                if (AuthOffset + 1 + loginLen + 1 >= data.Count)
-                    throw new Exception("Login length is too big, it does not fit into TcpPackage.");
-                login = Helper.UTF8NoBom.GetString(data.Array, data.Offset + AuthOffset + 1, loginLen);
+            string login = "admin";
+            string pass = "changeit";
+            //if ((flags & AmqpFlags.Authenticated) != 0)
+            //{
+            //    var loginLen = data.Array[data.Offset + AuthOffset];
+            //    if (AuthOffset + 1 + loginLen + 1 >= data.Count)
+            //        throw new Exception("Login length is too big, it does not fit into TcpPackage.");
+            //    login = Helper.UTF8NoBom.GetString(data.Array, data.Offset + AuthOffset + 1, loginLen);
 
-                var passLen = data.Array[data.Offset + AuthOffset + 1 + loginLen];
-                if (AuthOffset + 1 + loginLen + 1 + passLen > data.Count)
-                    throw new Exception("Password length is too big, it does not fit into TcpPackage.");
-                pass = Helper.UTF8NoBom.GetString(data.Array, data.Offset + AuthOffset + 1 + loginLen + 1, passLen);
+            //    var passLen = data.Array[data.Offset + AuthOffset + 1 + loginLen];
+            //    if (AuthOffset + 1 + loginLen + 1 + passLen > data.Count)
+            //        throw new Exception("Password length is too big, it does not fit into TcpPackage.");
+            //    pass = Helper.UTF8NoBom.GetString(data.Array, data.Offset + AuthOffset + 1 + loginLen + 1, passLen);
 
-                headerSize += 1 + loginLen + 1 + passLen;
-            }
+            //    headerSize += 1 + loginLen + 1 + passLen;
+            //}
 
             return new AmqpPackage(command,
                                   flags,

@@ -5,7 +5,7 @@ using EventStore.Common.Utils;
 namespace EventStore.Core.Services.Transport.Tcp
 {
     [Flags]
-    public enum AmqpFlags: byte
+    public enum TcpFlags : byte
     {
         None = 0x00,
         Authenticated = 0x01,
@@ -21,7 +21,7 @@ namespace EventStore.Core.Services.Transport.Tcp
         public const int MandatorySize = AuthOffset;
 
         public readonly TcpCommand Command;
-        public readonly AmqpFlags Flags;
+        public readonly TcpFlags Flags;
         public readonly Guid CorrelationId;
         public readonly string Login;
         public readonly string Password;
@@ -33,7 +33,7 @@ namespace EventStore.Core.Services.Transport.Tcp
                 throw new ArgumentException(string.Format("ArraySegment too short, length: {0}", data.Count), "data");
 
             var command = (TcpCommand) data.Array[data.Offset + CommandOffset];
-            var flags = (AmqpFlags) data.Array[data.Offset + FlagsOffset];
+            var flags = (TcpFlags) data.Array[data.Offset + FlagsOffset];
 
             var guidBytes = new byte[16];
             Buffer.BlockCopy(data.Array, data.Offset + CorrelationOffset, guidBytes, 0, 16);
@@ -42,7 +42,7 @@ namespace EventStore.Core.Services.Transport.Tcp
             var headerSize = MandatorySize;
             string login = null;
             string pass = null;
-            if ((flags & AmqpFlags.Authenticated) != 0)
+            if ((flags & TcpFlags.Authenticated) != 0)
             {
                 var loginLen = data.Array[data.Offset + AuthOffset];
                 if (AuthOffset + 1 + loginLen + 1 >= data.Count)
@@ -66,23 +66,23 @@ namespace EventStore.Core.Services.Transport.Tcp
         }
 
         public TcpPackage(TcpCommand command, Guid correlationId, byte[] data)
-            : this(command, AmqpFlags.None, correlationId, null, null, data)
+            : this(command, TcpFlags.None, correlationId, null, null, data)
         {
         }
 
         public TcpPackage(TcpCommand command, Guid correlationId, ArraySegment<byte> data)
-            : this(command, AmqpFlags.None, correlationId, null, null, data)
+            : this(command, TcpFlags.None, correlationId, null, null, data)
         {
         }
 
-        public TcpPackage(TcpCommand command, AmqpFlags flags, Guid correlationId, string login, string password, byte[] data)
+        public TcpPackage(TcpCommand command, TcpFlags flags, Guid correlationId, string login, string password, byte[] data)
             : this(command, flags, correlationId, login, password, new ArraySegment<byte>(data ?? Empty.ByteArray))
         {
         }
 
-        public TcpPackage(TcpCommand command, AmqpFlags flags, Guid correlationId, string login, string password, ArraySegment<byte> data)
+        public TcpPackage(TcpCommand command, TcpFlags flags, Guid correlationId, string login, string password, ArraySegment<byte> data)
         {
-            if ((flags & AmqpFlags.Authenticated) != 0)
+            if ((flags & TcpFlags.Authenticated) != 0)
             {
                 Ensure.NotNull(login, "login");
                 Ensure.NotNull(password, "password");
@@ -103,7 +103,7 @@ namespace EventStore.Core.Services.Transport.Tcp
 
         public byte[] AsByteArray()
         {
-            if ((Flags & AmqpFlags.Authenticated) != 0)
+            if ((Flags & TcpFlags.Authenticated) != 0)
             {
                 var loginLen = Helper.UTF8NoBom.GetByteCount(Login);
                 var passLen = Helper.UTF8NoBom.GetByteCount(Password);

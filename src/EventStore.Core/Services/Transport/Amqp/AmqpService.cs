@@ -7,9 +7,10 @@ using EventStore.Common.Utils;
 using EventStore.Core.Authentication;
 using EventStore.Core.Bus;
 using EventStore.Core.Messages;
+using EventStore.Core.Services.Transport.Tcp;
 using EventStore.Transport.Tcp;
 
-namespace EventStore.Core.Services.Transport.Tcp
+namespace EventStore.Core.Services.Transport.Amqp
 {
     public enum AmqpServiceType
     {
@@ -33,9 +34,9 @@ namespace EventStore.Core.Services.Transport.Tcp
         private readonly IPEndPoint _serverEndPoint;
         private readonly TcpServerListener _serverListener;
         private readonly IPublisher _networkSendQueue;
-        private readonly TcpServiceType _serviceType;
-        private readonly TcpSecurityType _securityType;
-        private readonly Func<Guid, IPEndPoint, ITcpDispatcher> _dispatcherFactory;
+        private readonly AmqpServiceType _serviceType;
+        private readonly AmqpSecurityType _securityType;
+        private readonly Func<Guid, IPEndPoint, IAmqpDispatcher> _dispatcherFactory;
         private readonly TimeSpan _heartbeatInterval;
         private readonly TimeSpan _heartbeatTimeout;
         private readonly IAuthenticationProvider _authProvider;
@@ -44,9 +45,9 @@ namespace EventStore.Core.Services.Transport.Tcp
         public AmqpService(IPublisher publisher,
                           IPEndPoint serverEndPoint,
                           IPublisher networkSendQueue,
-                          TcpServiceType serviceType,
-                          TcpSecurityType securityType,
-                          ITcpDispatcher dispatcher,
+                          AmqpServiceType serviceType,
+                          AmqpSecurityType securityType,
+                          IAmqpDispatcher dispatcher,
                           TimeSpan heartbeatInterval,
                           TimeSpan heartbeatTimeout,
                           IAuthenticationProvider authProvider,
@@ -58,10 +59,10 @@ namespace EventStore.Core.Services.Transport.Tcp
 
         public AmqpService(IPublisher publisher, 
                           IPEndPoint serverEndPoint, 
-                          IPublisher networkSendQueue, 
-                          TcpServiceType serviceType,
-                          TcpSecurityType securityType,
-                          Func<Guid, IPEndPoint, ITcpDispatcher> dispatcherFactory,
+                          IPublisher networkSendQueue,
+                          AmqpServiceType serviceType,
+                          AmqpSecurityType securityType,
+                          Func<Guid, IPEndPoint, IAmqpDispatcher> dispatcherFactory,
                           TimeSpan heartbeatInterval,
                           TimeSpan heartbeatTimeout,
                           IAuthenticationProvider authProvider,
@@ -72,7 +73,7 @@ namespace EventStore.Core.Services.Transport.Tcp
             Ensure.NotNull(networkSendQueue, "networkSendQueue");
             Ensure.NotNull(dispatcherFactory, "dispatcherFactory");
             Ensure.NotNull(authProvider, "authProvider");
-            if (securityType == TcpSecurityType.Secure)
+            if (securityType == AmqpSecurityType.Secure)
                 Ensure.NotNull(certificate, "certificate");
 
             _publisher = publisher;
@@ -111,14 +112,14 @@ namespace EventStore.Core.Services.Transport.Tcp
 
         private void OnConnectionAccepted(IPEndPoint endPoint, Socket socket)
         {
-            var conn = _securityType == TcpSecurityType.Secure 
+            var conn = _securityType == AmqpSecurityType.Secure 
                 ? TcpConnectionSsl.CreateServerFromSocket(Guid.NewGuid(), endPoint, socket, _certificate, verbose: true)
                 : TcpConnection.CreateAcceptedTcpConnection(Guid.NewGuid(), endPoint, socket, verbose: true);
             Log.Info("{0} Amqp connection accepted: [{1}, {2}, L{3}, {4:B}].", 
                      _serviceType, _securityType, conn.RemoteEndPoint, conn.LocalEndPoint, conn.ConnectionId);
 
             var dispatcher = _dispatcherFactory(conn.ConnectionId, _serverEndPoint);
-            var manager = new TcpConnectionManager(
+            var manager = new AmqpConnectionManager(
                     string.Format("{0}-{1}", _serviceType.ToString().ToLower(), _securityType.ToString().ToLower()),
                     dispatcher,
                     _publisher,
@@ -127,8 +128,8 @@ namespace EventStore.Core.Services.Transport.Tcp
                     _authProvider,
                     _heartbeatInterval,
                     _heartbeatTimeout,
-                    (m, e) => _publisher.Publish(new TcpMessage.ConnectionClosed(m, e))); // TODO AN: race condition
-            _publisher.Publish(new TcpMessage.ConnectionEstablished(manager));
+                    (m, e) => _publisher.Publish(new AmqpMessage.ConnectionClosed(m, e))); // TODO AN: race condition
+            _publisher.Publish(new AmqpMessage.ConnectionEstablished(manager));
             manager.StartReceiving();
         }
     }

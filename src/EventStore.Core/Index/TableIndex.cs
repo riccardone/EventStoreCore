@@ -125,7 +125,14 @@ namespace EventStore.Core.Index
             {
                 var file = Path.Combine(_directory, filePath);
                 File.SetAttributes(file, FileAttributes.Normal);
-                File.Delete(file);
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (System.IO.IOException)
+                {
+                    // TODO Riccardo, remember to remove this catch asap
+                }
             }
         }
 

@@ -182,6 +182,8 @@ namespace EventStore.ClusterNode
 
         [ArgDescription(Opts.HistogramDescr, Opts.AppGroup)]
         public bool EnableHistograms { get; set; }
+        [ArgDescription(Opts.ExternalAmqpPortDescr, Opts.InterfacesGroup)]
+        public int ExtAmqpPort { get; set; }
         public ClusterNodeOptions()
         {
             Config = "";
@@ -200,6 +202,7 @@ namespace EventStore.ClusterNode
             IntTcpPort = Opts.InternalTcpPortDefault;
             IntSecureTcpPort = Opts.InternalSecureTcpPortDefault;
             ExtTcpPort = Opts.ExternalTcpPortDefault;
+            ExtAmqpPort = Opts.ExternalAmqpPortDefault;
             ExtSecureTcpPort = Opts.ExternalSecureTcpPortDefault;
             Force = Opts.ForceDefault;
             ClusterSize = Opts.ClusterSizeDefault;

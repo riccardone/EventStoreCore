@@ -107,7 +107,7 @@ namespace EventStore.Core.Cluster.Settings
                                     bool disableHTTPCaching,
                                     string index = null,
                                     bool enableHistograms = false,
-                                    int indexCacheDepth = 16)
+                                    int indexCacheDepth = 16, IPEndPoint externalAmqpEndPoint = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -135,7 +135,7 @@ namespace EventStore.Core.Cluster.Settings
             NodeInfo = new VNodeInfo(instanceId, debugIndex,
                                      internalTcpEndPoint, internalSecureTcpEndPoint,
                                      externalTcpEndPoint, externalSecureTcpEndPoint,
-                                     internalHttpEndPoint, externalHttpEndPoint);
+                                     internalHttpEndPoint, externalHttpEndPoint, externalAmqpEndPoint);
             GossipAdvertiseInfo = gossipAdvertiseInfo;
             IntHttpPrefixes = intHttpPrefixes;
             ExtHttpPrefixes = extHttpPrefixes;

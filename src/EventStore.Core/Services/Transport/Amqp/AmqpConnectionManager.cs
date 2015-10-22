@@ -26,7 +26,7 @@ namespace EventStore.Core.Services.Transport.Amqp
         public const int ConnectionQueueSizeThreshold = 50000;
         public static readonly TimeSpan ConnectionTimeout = TimeSpan.FromMilliseconds(1000);
 
-        private static readonly ILogger Log = LogManager.GetLoggerFor<TcpConnectionManager>();
+        private static readonly ILogger Log = LogManager.GetLoggerFor<AmqpConnectionManager>();
 
         public readonly Guid ConnectionId;
         public readonly string ConnectionName;
@@ -43,8 +43,8 @@ namespace EventStore.Core.Services.Transport.Amqp
         private int _messageNumber;
         private int _isClosed;
 
-        private readonly Action<TcpConnectionManager, SocketError> _connectionClosed;
-        private readonly Action<TcpConnectionManager> _connectionEstablished;
+        private readonly Action<AmqpConnectionManager, SocketError> _connectionClosed;
+        private readonly Action<AmqpConnectionManager> _connectionEstablished;
 
         private readonly SendToWeakThisEnvelope _weakThisEnvelope;
         private readonly TimeSpan _heartbeatInterval;
@@ -53,15 +53,15 @@ namespace EventStore.Core.Services.Transport.Amqp
         private readonly IAuthenticationProvider _authProvider;
         private UserCredentials _defaultUser;
 
-        public AmqpConnectionManager(string connectionName, 
-                                    IAmqpDispatcher dispatcher, 
-                                    IPublisher publisher, 
+        public AmqpConnectionManager(string connectionName,
+                                    IAmqpDispatcher dispatcher,
+                                    IPublisher publisher,
                                     ITcpConnection openedConnection,
                                     IPublisher networkSendQueue,
                                     IAuthenticationProvider authProvider,
                                     TimeSpan heartbeatInterval,
                                     TimeSpan heartbeatTimeout,
-                                    Action<TcpConnectionManager, SocketError> onConnectionClosed)
+                                    Action<AmqpConnectionManager, SocketError> onConnectionClosed)
         {
             Ensure.NotNull(dispatcher, "dispatcher");
             Ensure.NotNull(publisher, "publisher");
@@ -72,12 +72,12 @@ namespace EventStore.Core.Services.Transport.Amqp
             ConnectionId = openedConnection.ConnectionId;
             ConnectionName = connectionName;
 
-            _tcpEnvelope = new SendOverTcpEnvelope(this, networkSendQueue);
+            _tcpEnvelope = new SendOverAmqpEnvelope(this, networkSendQueue);
             _publisher = publisher;
             _dispatcher = dispatcher;
             _authProvider = authProvider;
 
-            _framer = new LengthPrefixMessageFramer();
+            _framer = new AmqpLengthPrefixMessageFramer(1347505473);
             _framer.RegisterMessageArrivedCallback(OnMessageArrived);
 
             _weakThisEnvelope = new SendToWeakThisEnvelope(this);
@@ -98,11 +98,11 @@ namespace EventStore.Core.Services.Transport.Amqp
             ScheduleHeartbeat(0);
         }
 
-        public AmqpConnectionManager(string connectionName, 
+        public AmqpConnectionManager(string connectionName,
                                     Guid connectionId,
                                     IAmqpDispatcher dispatcher,
                                     IPublisher publisher,
-                                    IPEndPoint remoteEndPoint, 
+                                    IPEndPoint remoteEndPoint,
                                     TcpClientConnector connector,
                                     bool useSsl,
                                     string sslTargetHost,
@@ -111,8 +111,8 @@ namespace EventStore.Core.Services.Transport.Amqp
                                     IAuthenticationProvider authProvider,
                                     TimeSpan heartbeatInterval,
                                     TimeSpan heartbeatTimeout,
-                                    Action<TcpConnectionManager> onConnectionEstablished,
-                                    Action<TcpConnectionManager, SocketError> onConnectionClosed)
+                                    Action<AmqpConnectionManager> onConnectionEstablished,
+                                    Action<AmqpConnectionManager, SocketError> onConnectionClosed)
         {
             Ensure.NotEmptyGuid(connectionId, "connectionId");
             Ensure.NotNull(dispatcher, "dispatcher");
@@ -125,12 +125,12 @@ namespace EventStore.Core.Services.Transport.Amqp
             ConnectionId = connectionId;
             ConnectionName = connectionName;
 
-            _tcpEnvelope = new SendOverTcpEnvelope(this, networkSendQueue);
+            _tcpEnvelope = new SendOverAmqpEnvelope(this, networkSendQueue);
             _publisher = publisher;
             _dispatcher = dispatcher;
             _authProvider = authProvider;
 
-            _framer = new LengthPrefixMessageFramer();
+            _framer = new AmqpLengthPrefixMessageFramer(1347505473);
             _framer.RegisterMessageArrivedCallback(OnMessageArrived);
 
             _weakThisEnvelope = new SendToWeakThisEnvelope(this);
@@ -141,7 +141,7 @@ namespace EventStore.Core.Services.Transport.Amqp
             _connectionClosed = onConnectionClosed;
 
             RemoteEndPoint = remoteEndPoint;
-            _connection = useSsl 
+            _connection = useSsl
                 ? connector.ConnectSslTo(ConnectionId, remoteEndPoint, ConnectionTimeout,
                                          sslTargetHost, sslValidateServer, OnConnectionEstablished, OnConnectionFailed)
                 : connector.ConnectTo(ConnectionId, remoteEndPoint, ConnectionTimeout, OnConnectionEstablished, OnConnectionFailed);
@@ -236,48 +236,50 @@ namespace EventStore.Core.Services.Transport.Amqp
                     SendPackage(new AmqpPackage(AmqpCommand.HeartbeatResponseCommand, package.CorrelationId, null));
                     break;
                 case AmqpCommand.BadRequest:
-                {
-                    var reason = string.Empty;
-                    Helper.EatException(() => reason = Helper.UTF8NoBom.GetString(package.Data.Array, package.Data.Offset, package.Data.Count));
-                    var exitMessage = 
-                        string.Format("Bad request received from '{0}' [{1}, L{2}, {3:B}], will stop server. CorrelationId: {4:B}, Error: {5}.",
-                                      ConnectionName, RemoteEndPoint, LocalEndPoint, ConnectionId, package.CorrelationId,
-                                      reason.IsEmptyString() ? "<reason missing>" : reason);
-                    Log.Error(exitMessage);
-                    break;
-                }
+                    {
+                        var reason = string.Empty;
+                        Helper.EatException(() => reason = Helper.UTF8NoBom.GetString(package.Data.Array, package.Data.Offset, package.Data.Count));
+                        var exitMessage =
+                            string.Format("Bad request received from '{0}' [{1}, L{2}, {3:B}], will stop server. CorrelationId: {4:B}, Error: {5}.",
+                                          ConnectionName, RemoteEndPoint, LocalEndPoint, ConnectionId, package.CorrelationId,
+                                          reason.IsEmptyString() ? "<reason missing>" : reason);
+                        Log.Error(exitMessage);
+                        break;
+                    }
                 case AmqpCommand.Authenticate:
-                {
-                    if ((package.Flags & AmqpFlags.Authenticated) == 0)
-                        ReplyNotAuthenticated(package.CorrelationId, "No user credentials provided.");
-                    else
                     {
-                        var defaultUser = new UserCredentials(package.Login, package.Password, null);
-                        Interlocked.Exchange(ref _defaultUser, defaultUser);
-                        _authProvider.Authenticate(new AmqpDefaultAuthRequest(this, package.CorrelationId, defaultUser));
-                    }
-                    break;
-                }
-                default:
-                {
-                    var defaultUser = _defaultUser;
-                    if ((package.Flags & AmqpFlags.Authenticated) != 0)
-                    {
-                        _authProvider.Authenticate(new AmqpAuthRequest(this, package, package.Login, package.Password));
-                    }
-                    else if (defaultUser != null)
-                    {
-                        if (defaultUser.User != null)
-                            UnwrapAndPublishPackage(package, defaultUser.User, defaultUser.Login, defaultUser.Password);
+                        if ((package.Flags & AmqpFlags.Authenticated) == 0)
+                            ReplyNotAuthenticated(package.CorrelationId, "No user credentials provided.");
                         else
-                            _authProvider.Authenticate(new AmqpAuthRequest(this, package, defaultUser.Login, defaultUser.Password));
+                        {
+                            var defaultUser = new UserCredentials(package.Login, package.Password, null);
+                            Interlocked.Exchange(ref _defaultUser, defaultUser);
+                            _authProvider.Authenticate(new AmqpDefaultAuthRequest(this, package.CorrelationId, defaultUser));
+                        }
+                        break;
                     }
-                    else
+                default:
                     {
-                        UnwrapAndPublishPackage(package, null, null, null);
+                        //var defaultUser = _defaultUser;
+                        //if ((package.Flags & AmqpFlags.Authenticated) != 0)
+                        //{
+                        //    _authProvider.Authenticate(new AmqpAuthRequest(this, package, package.Login, package.Password));
+                        //}
+                        //else if (defaultUser != null)
+                        //{
+                        //    if (defaultUser.User != null)
+                        //        UnwrapAndPublishPackage(package, defaultUser.User, defaultUser.Login, defaultUser.Password);
+                        //    else
+                        //        _authProvider.Authenticate(new AmqpAuthRequest(this, package, defaultUser.Login, defaultUser.Password));
+                        //}
+                        //else
+                        //{
+                        //UnwrapAndPublishPackage(package, null, null,null);
+                        //}
+                        var defaultUser = new UserCredentials(package.Login, package.Password, null);
+                        UnwrapAndPublishPackage(package, defaultUser.User, package.Login, package.Password);
+                        break;
                     }
-                    break;
-                }
             }
         }
 
@@ -285,10 +287,12 @@ namespace EventStore.Core.Services.Transport.Amqp
         {
             Message message = null;
             string error = "";
-            try {
+            try
+            {
                 message = _dispatcher.UnwrapPackage(package, _tcpEnvelope, user, login, password, this);
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 error = ex.Message;
             }
             if (message != null)
@@ -419,7 +423,7 @@ namespace EventStore.Core.Services.Transport.Amqp
             private readonly AmqpConnectionManager _manager;
             private readonly AmqpPackage _package;
 
-            public AmqpAuthRequest(AmqpConnectionManager manager, AmqpPackage package, string login, string password) 
+            public AmqpAuthRequest(AmqpConnectionManager manager, AmqpPackage package, string login, string password)
                 : base(login, password)
             {
                 _manager = manager;

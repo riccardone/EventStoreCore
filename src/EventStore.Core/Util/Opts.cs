@@ -202,6 +202,9 @@ namespace EventStore.Core.Util
         public const string ExternalTcpPortDescr = "External TCP Port.";
         public const int    ExternalTcpPortDefault = 1113;
 
+        public const string ExternalAmqpPortDescr = "External Amqp Port.";
+        public const int ExternalAmqpPortDefault = 5672;
+
         public const string ExternalSecureTcpPortDescr = "External Secure TCP Port.";
         public const int    ExternalSecureTcpPortDefault = 0;
 

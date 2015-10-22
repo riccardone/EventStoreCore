@@ -34,6 +34,7 @@ using EventStore.Core.Helpers;
 using EventStore.Core.Services.PersistentSubscription;
 using System.Threading;
 using EventStore.Core.Services.Histograms;
+using EventStore.Core.Services.Transport.Amqp;
 
 namespace EventStore.Core
 {
@@ -225,6 +226,15 @@ namespace EventStore.Core
                 _mainBus.Subscribe<SystemMessage.SystemInit>(extTcpService);
                 _mainBus.Subscribe<SystemMessage.SystemStart>(extTcpService);
                 _mainBus.Subscribe<SystemMessage.BecomeShuttingDown>(extTcpService);
+
+                // EXTERNAL Amqp
+                var extAmqpService = new AmqpService(_mainQueue, _nodeInfo.ExternalAmqp, _workersHandler,
+                                                   AmqpServiceType.External, AmqpSecurityType.Normal, new ClientAmqpDispatcher(),
+                                                   vNodeSettings.IntTcpHeartbeatInterval, vNodeSettings.IntTcpHeartbeatTimeout,
+                                                   _internalAuthenticationProvider, null);
+                _mainBus.Subscribe<SystemMessage.SystemInit>(extAmqpService);
+                _mainBus.Subscribe<SystemMessage.SystemStart>(extAmqpService);
+                _mainBus.Subscribe<SystemMessage.BecomeShuttingDown>(extAmqpService);
 
                 // EXTERNAL SECURE TCP
                 if (_nodeInfo.ExternalSecureTcp != null)

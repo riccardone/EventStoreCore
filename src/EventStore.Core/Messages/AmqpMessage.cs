@@ -1,6 +1,7 @@
 using System;
 using System.Net.Sockets;
 using EventStore.Core.Messaging;
+using EventStore.Core.Services.Transport.Amqp;
 using EventStore.Core.Services.Transport.Tcp;
 
 namespace EventStore.Core.Messages
@@ -14,10 +15,10 @@ namespace EventStore.Core.Messages
 
             public int QueueId { get { return ConnectionManager.GetHashCode(); } }
 
-            public readonly TcpConnectionManager ConnectionManager;
+            public readonly AmqpConnectionManager ConnectionManager;
             public readonly Message Message;
 
-            public Send(TcpConnectionManager connectionManager, Message message)
+            public Send(AmqpConnectionManager connectionManager, Message message)
             {
                 ConnectionManager = connectionManager;
                 Message = message;
@@ -70,9 +71,9 @@ namespace EventStore.Core.Messages
             private static readonly int TypeId = System.Threading.Interlocked.Increment(ref NextMsgId);
             public override int MsgTypeId { get { return TypeId; } }
 
-            public readonly TcpConnectionManager Connection;
+            public readonly AmqpConnectionManager Connection;
 
-            public ConnectionEstablished(TcpConnectionManager connection)
+            public ConnectionEstablished(AmqpConnectionManager connection)
             {
                 Connection = connection;
             }
@@ -83,10 +84,10 @@ namespace EventStore.Core.Messages
             private static readonly int TypeId = System.Threading.Interlocked.Increment(ref NextMsgId);
             public override int MsgTypeId { get { return TypeId; } }
 
-            public readonly TcpConnectionManager Connection;
+            public readonly AmqpConnectionManager Connection;
             public readonly SocketError SocketError;
 
-            public ConnectionClosed(TcpConnectionManager connection, SocketError socketError)
+            public ConnectionClosed(AmqpConnectionManager connection, SocketError socketError)
             {
                 Connection = connection;
                 SocketError = socketError;

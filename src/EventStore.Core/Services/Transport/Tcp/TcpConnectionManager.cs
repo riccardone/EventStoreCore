@@ -247,7 +247,7 @@ namespace EventStore.Core.Services.Transport.Tcp
                 }
                 case TcpCommand.Authenticate:
                 {
-                    if ((package.Flags & AmqpFlags.Authenticated) == 0)
+                    if ((package.Flags & TcpFlags.Authenticated) == 0)
                         ReplyNotAuthenticated(package.CorrelationId, "No user credentials provided.");
                     else
                     {
@@ -260,7 +260,7 @@ namespace EventStore.Core.Services.Transport.Tcp
                 default:
                 {
                     var defaultUser = _defaultUser;
-                    if ((package.Flags & AmqpFlags.Authenticated) != 0)
+                    if ((package.Flags & TcpFlags.Authenticated) != 0)
                     {
                         _authProvider.Authenticate(new TcpAuthRequest(this, package, package.Login, package.Password));
                     }

@@ -51,10 +51,12 @@ namespace EventStore.ClusterNode
         {
             base.PreInit(options);
 
-            if (options.Db.StartsWith("~") && !options.Force){
+            if (options.Db.StartsWith("~") && !options.Force)
+            {
                 throw new ApplicationInitializationException("The given database path starts with a '~'. We don't expand '~'. You can use --force to override this error.");
             }
-            if (options.Log.StartsWith("~") && !options.Force){
+            if (options.Log.StartsWith("~") && !options.Force)
+            {
                 throw new ApplicationInitializationException("The given log path starts with a '~'. We don't expand '~'. You can use --force to override this error.");
             }
 
@@ -176,6 +178,7 @@ namespace EventStore.ClusterNode
             var intTcp = new IPEndPoint(options.IntIp, options.IntTcpPort);
             var intSecTcp = options.IntSecureTcpPort > 0 ? new IPEndPoint(options.IntIp, options.IntSecureTcpPort) : null;
             var extTcp = new IPEndPoint(options.ExtIp, options.ExtTcpPort);
+            var extAmqp = new IPEndPoint(options.ExtIp, options.ExtAmqpPort);
             var extSecTcp = options.ExtSecureTcpPort > 0 ? new IPEndPoint(options.ExtIp, options.ExtSecureTcpPort) : null;
             var intHttpPrefixes = options.IntHttpPrefixes.IsNotEmpty() ? options.IntHttpPrefixes : new string[0];
             var extHttpPrefixes = options.ExtHttpPrefixes.IsNotEmpty() ? options.ExtHttpPrefixes : new string[0];
@@ -192,14 +195,16 @@ namespace EventStore.ClusterNode
             if ((options.IntIp.Equals(IPAddress.Parse("0.0.0.0")) ||
                 options.ExtIp.Equals(IPAddress.Parse("0.0.0.0"))) && options.AddInterfacePrefixes)
             {
-                IPAddress nonLoopbackAddress = GetNonLoopbackAddress(); 
+                IPAddress nonLoopbackAddress = GetNonLoopbackAddress();
                 IPAddress addressToAdvertise = options.ClusterSize > 1 ? nonLoopbackAddress : IPAddress.Loopback;
 
-                if(options.IntIp.Equals(IPAddress.Parse("0.0.0.0"))){
+                if (options.IntIp.Equals(IPAddress.Parse("0.0.0.0")))
+                {
                     intIpAddressToAdvertise = options.IntIpAdvertiseAs ?? addressToAdvertise;
                     additionalIntHttpPrefixes.Add(String.Format("http://*:{0}/", intHttp.Port));
                 }
-                if(options.ExtIp.Equals(IPAddress.Parse("0.0.0.0"))){
+                if (options.ExtIp.Equals(IPAddress.Parse("0.0.0.0")))
+                {
                     extIpAddressToAdvertise = options.ExtIpAdvertiseAs ?? addressToAdvertise;
                     additionalExtHttpPrefixes.Add(String.Format("http://*:{0}/", extHttp.Port));
                 }
@@ -207,11 +212,13 @@ namespace EventStore.ClusterNode
             else if (options.AddInterfacePrefixes)
             {
                 additionalIntHttpPrefixes.Add(String.Format("http://{0}:{1}/", options.IntIp, options.IntHttpPort));
-                if(options.IntIp.Equals(IPAddress.Loopback)){
+                if (options.IntIp.Equals(IPAddress.Loopback))
+                {
                     additionalIntHttpPrefixes.Add(String.Format("http://localhost:{0}/", options.IntHttpPort));
                 }
                 additionalExtHttpPrefixes.Add(String.Format("http://{0}:{1}/", options.ExtIp, options.ExtHttpPort));
-                if(options.ExtIp.Equals(IPAddress.Loopback)){
+                if (options.ExtIp.Equals(IPAddress.Loopback))
+                {
                     additionalExtHttpPrefixes.Add(String.Format("http://localhost:{0}/", options.ExtHttpPort));
                 }
             }
@@ -228,13 +235,13 @@ namespace EventStore.ClusterNode
             var extTcpEndPoint = new IPEndPoint(extIpAddressToAdvertise, extTcpPort);
             var extSecureTcpPort = options.ExtSecureTcpPortAdvertiseAs > 0 ? options.ExtSecureTcpPortAdvertiseAs : options.ExtSecureTcpPort;
             var extSecureTcpEndPoint = new IPEndPoint(extIpAddressToAdvertise, extSecureTcpPort);
-            
+
             var intHttpPort = options.IntHttpPortAdvertiseAs > 0 ? options.IntHttpPortAdvertiseAs : options.IntHttpPort;
             var extHttpPort = options.ExtHttpPortAdvertiseAs > 0 ? options.ExtHttpPortAdvertiseAs : options.ExtHttpPort;
 
             var intHttpEndPoint = new IPEndPoint(intIpAddressToAdvertise, intHttpPort);
             var extHttpEndPoint = new IPEndPoint(extIpAddressToAdvertise, extHttpPort);
-            
+
             gossipAdvertiseInfo = new GossipAdvertiseInfo(intTcpEndPoint, intSecureTcpEndPoint,
                                                           extTcpEndPoint, extSecureTcpEndPoint,
                                                           intHttpEndPoint, extHttpEndPoint);
@@ -276,10 +283,11 @@ namespace EventStore.ClusterNode
                     options.DisableHTTPCaching,
                     options.Index,
                     options.EnableHistograms,
-                    options.IndexCacheDepth);
+                    options.IndexCacheDepth, extAmqp);
         }
 
-        private static IPAddress GetNonLoopbackAddress(){
+        private static IPAddress GetNonLoopbackAddress()
+        {
             foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
             {
                 foreach (UnicastIPAddressInformation address in adapter.GetIPProperties().UnicastAddresses)
