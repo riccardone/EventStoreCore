@@ -2,11 +2,15 @@
 using System.IO;
 using System.Threading;
 using System.Collections.Concurrent;
+using Amqp;
+using AmqpLite;
 using EventStore.Common.Log;
 using ProtoBuf;
 
 namespace EventStore.Core.Services.Transport.Amqp
 {
+    // http://www.codeproject.com/Articles/642677/Protobuf-net-the-unofficial-manual
+
     public static class ProtobufExtensions
     {
         private static readonly ConcurrentStack<MemoryStream> _streams;
@@ -52,11 +56,14 @@ namespace EventStore.Core.Services.Transport.Amqp
         {
             try
             {
-                using (var memory = new MemoryStream(data.Array, data.Offset, data.Count)) //uses original buffer as memory
-                {
-                    var res = Serializer.Deserialize<T>(memory);
-                    return res;
-                }
+                var buffer = new ByteBuffer(data.Array, data.Offset, data.Count, data.Array.Length);
+                var msg = Message.Decode(buffer);
+                return default(T);
+                //using (var memory = new MemoryStream(data.Array, data.Offset, data.Count)) //uses original buffer as memory
+                //{
+                //    var res = Serializer.Deserialize<T>(memory);
+                //    return res;
+                //}
             }
             catch (Exception e)
             {

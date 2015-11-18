@@ -31,7 +31,10 @@ namespace EventStore.Core.Services.Transport.Amqp
             if (data.Count < MandatorySize)
                 throw new ArgumentException(string.Format("ArraySegment too short, length: {0}", data.Count), "data");
 
-            var command = (AmqpCommand)data.Array[data.Offset + CommandOffset];
+            // TODO fix this and set the command from the data properly
+            //var command = (AmqpCommand)data.Array[data.Offset + CommandOffset];
+            var command = AmqpCommand.WriteEvents;
+
             var flags = (AmqpFlags) data.Array[data.Offset + FlagsOffset];
 
             var guidBytes = new byte[16];

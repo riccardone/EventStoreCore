@@ -93,6 +93,7 @@ namespace EventStore.Core.Services.Transport.Amqp
         {
             try
             {
+                //new EventStoreServer().Run();
                 _serverListener.StartListening(OnConnectionAccepted, _securityType.ToString());
             }
             catch (Exception e)

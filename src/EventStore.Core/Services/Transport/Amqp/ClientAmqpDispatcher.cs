@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Principal;
+using Amqp;
 using EventStore.Common.Utils;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
@@ -83,7 +84,7 @@ namespace EventStore.Core.Services.Transport.Amqp
             AddWrapper<AmqpMessage.Authenticated>(WrapAuthenticated);
         }
 
-        private static Message UnwrapPing(AmqpPackage package, IEnvelope envelope)
+        private static Messaging.Message UnwrapPing(AmqpPackage package, IEnvelope envelope)
         {
             var data = new byte[package.Data.Count];
             Buffer.BlockCopy(package.Data.Array, package.Data.Offset, data, 0, package.Data.Count);
@@ -100,7 +101,10 @@ namespace EventStore.Core.Services.Transport.Amqp
         private static ClientMessage.WriteEvents UnwrapWriteEvents(AmqpPackage package, IEnvelope envelope,
                                                                    IPrincipal user, string login, string password)
         {
-            var dto = package.Data.Deserialize<TcpClientMessageDto.WriteEvents>();
+            //var bBuffer = new ByteBuffer(package.AsByteArray(), 0, package.Data.Count, package.Data.Array.Length);
+            //var msg = AmqpLite.Message.Decode(bBuffer);
+
+            var dto = package.Data.Deserialize<AmqpClientMessageDto.WriteEvents>();
             if (dto == null) return null;
 
             var events = new Event[dto.Events == null ? 0 : dto.Events.Length];

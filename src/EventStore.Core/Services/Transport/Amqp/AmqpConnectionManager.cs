@@ -77,7 +77,7 @@ namespace EventStore.Core.Services.Transport.Amqp
             _dispatcher = dispatcher;
             _authProvider = authProvider;
 
-            _framer = new AmqpLengthPrefixMessageFramer(1347505473);
+            _framer = new AmqpLengthPrefixMessageFramer(1347505473); 
             _framer.RegisterMessageArrivedCallback(OnMessageArrived);
 
             _weakThisEnvelope = new SendToWeakThisEnvelope(this);

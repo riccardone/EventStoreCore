@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using EventStore.Common.Log;
 using EventStore.Common.Utils;
+using Amqp;
 
 namespace EventStore.Transport.Tcp.Framing
 {
@@ -67,6 +68,7 @@ namespace EventStore.Transport.Tcp.Framing
         private void Parse(ArraySegment<byte> bytes)
         {
             byte[] data = bytes.Array;
+
             for (int i = bytes.Offset, n = bytes.Offset + bytes.Count; i < n; i++)
             {
                 if (_headerBytes < HeaderLength)
