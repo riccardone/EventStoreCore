@@ -439,6 +439,8 @@
     <Compile Include="Services\Storage\HashCollisions\with_two_collisioned_streams_one_event_each_read_index_should.cs" />
     <Compile Include="Services\Storage\HashCollisions\with_no_hash_collisions_read_index_should.cs" />
     <Compile Include="Services\Storage\HashCollisions\with_three_collisioned_streams_one_event_each_read_index_should.cs" />
+    <Compile Include="Services\Transport\Amqp\core_amqp_package.cs" />
+    <Compile Include="Services\Transport\Amqp\amqp_connection.cs" />
     <Compile Include="Services\Transport\Http\Authentication\basic_http_authentication_provider.cs" />
     <Compile Include="Services\Transport\Http\Authentication\rfc_2898_password_hash_algorithm.cs" />
     <Compile Include="Authentication\with_internal_authentication_provider.cs" />

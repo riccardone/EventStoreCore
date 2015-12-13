@@ -262,6 +262,7 @@
     <Compile Include="Services\Transport\Amqp\Lite\AmqpBitConverter.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\AmqpException.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\AmqpObject.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\BufferManager.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\ByteBuffer.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Connection.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Delivery.cs" />
@@ -299,6 +300,7 @@
     <Compile Include="Services\Transport\Amqp\Lite\Framing\Source.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Framing\Target.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Framing\Transfer.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\IBufferManager.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\ITransport.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Link.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\LinkedList.cs" />
@@ -324,6 +326,16 @@
     <Compile Include="Services\Transport\Amqp\Lite\Sasl\SaslResponse.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\SenderLink.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\SequenceNumber.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\AmqpContractAttribute.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\AmqpMemberAttribute.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\AmqpProvidesAttribute.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\AmqpSerializer.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\EncodingType.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\IAmqpSerializable.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\MemberAccessor.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\MethodAccessor.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\SerialiableMember.cs" />
+    <Compile Include="Services\Transport\Amqp\Lite\Serialization\SerializableType.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Session.cs" />
     <Compile Include="Services\Transport\Amqp\Lite\Trace.cs" />
     <Compile Include="Services\Transport\Amqp\ProtobufExtensions.cs" />

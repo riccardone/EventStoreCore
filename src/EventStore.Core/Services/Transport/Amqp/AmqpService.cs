@@ -115,7 +115,7 @@ namespace EventStore.Core.Services.Transport.Amqp
         {
             var conn = _securityType == AmqpSecurityType.Secure 
                 ? TcpConnectionSsl.CreateServerFromSocket(Guid.NewGuid(), endPoint, socket, _certificate, verbose: true)
-                : TcpConnection.CreateAcceptedTcpConnection(Guid.NewGuid(), endPoint, socket, verbose: true);
+                : AmqpConnection.CreateAcceptedAmqpConnection(Guid.NewGuid(), endPoint, socket, verbose: true);
             Log.Info("{0} Amqp connection accepted: [{1}, {2}, L{3}, {4:B}].", 
                      _serviceType, _securityType, conn.RemoteEndPoint, conn.LocalEndPoint, conn.ConnectionId);
 

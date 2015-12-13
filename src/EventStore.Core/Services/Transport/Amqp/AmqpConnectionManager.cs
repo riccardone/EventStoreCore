@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Principal;
 using System.Threading;
 using EventStore.Common.Log;
@@ -188,6 +193,11 @@ namespace EventStore.Core.Services.Transport.Amqp
 
             try
             {
+                var content = data.First().Array;
+                using (var ms = new MemoryStream(content))
+                {
+                    var ciccio = DeserializeFromStream(ms);
+                }
                 _framer.UnFrameData(data);
             }
             catch (PackageFramingException exc)
@@ -196,6 +206,14 @@ namespace EventStore.Core.Services.Transport.Amqp
                 return;
             }
             _connection.ReceiveAsync(OnRawDataReceived);
+        }
+
+        private static object DeserializeFromStream(MemoryStream stream)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            stream.Seek(0, SeekOrigin.Begin);
+            object o = formatter.Deserialize(stream);
+            return o;
         }
 
         private void OnMessageArrived(ArraySegment<byte> data)
