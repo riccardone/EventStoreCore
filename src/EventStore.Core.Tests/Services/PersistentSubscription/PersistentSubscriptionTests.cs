@@ -357,6 +357,107 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
     }
 
     [TestFixture]
+    public class SynchronousReadingClient
+    {
+        [Test]
+        public void subscription_with_less_than_n_events_returns_less_events_to_the_client()
+        {
+            var reader = new FakeCheckpointReader();
+            var sub = new Core.Services.PersistentSubscription.PersistentSubscription(
+                PersistentSubscriptionParamsBuilder.CreateFor("streamName", "groupName")
+                    .WithEventLoader(new FakeStreamReader(x => { }))
+                    .WithCheckpointReader(reader)
+                    .WithCheckpointWriter(new FakeCheckpointWriter(x => { }))
+                    .WithMessageParker(new FakeMessageParker())
+                    .StartFromBeginning());
+            reader.Load(null);
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            sub.HandleReadCompleted(new[]
+            {
+                Helper.BuildFakeEvent(id1, "type", "streamName", 0),
+                Helper.BuildFakeEvent(id2, "type", "streamName", 1)
+            }, 1, false);
+            var result = sub.GetNextNOrLessMessages(5).ToArray();
+            Assert.AreEqual(2, result.Length);
+            Assert.AreEqual(id1, result[0].Event.EventId);
+            Assert.AreEqual(id2, result[1].Event.EventId);
+        }
+
+        [Test]
+        public void subscription_with_n_events_returns_n_events_to_the_client()
+        {
+            var reader = new FakeCheckpointReader();
+            var sub = new Core.Services.PersistentSubscription.PersistentSubscription(
+                PersistentSubscriptionParamsBuilder.CreateFor("streamName", "groupName")
+                    .WithEventLoader(new FakeStreamReader(x => { }))
+                    .WithCheckpointReader(reader)
+                    .WithCheckpointWriter(new FakeCheckpointWriter(x => { }))
+                    .WithMessageParker(new FakeMessageParker())
+                    .StartFromBeginning());
+            reader.Load(null);
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            sub.HandleReadCompleted(new[]
+            {
+                Helper.BuildFakeEvent(id1, "type", "streamName", 0),
+                Helper.BuildFakeEvent(id2, "type", "streamName", 1)
+            }, 1, false);
+            var result = sub.GetNextNOrLessMessages(2).ToArray();
+            Assert.AreEqual(2, result.Length);
+            Assert.AreEqual(id1, result[0].Event.EventId);
+            Assert.AreEqual(id2, result[1].Event.EventId);
+        }
+
+        [Test]
+        public void subscription_with_more_than_n_events_returns_n_events_to_the_client()
+        {
+            var reader = new FakeCheckpointReader();
+            var sub = new Core.Services.PersistentSubscription.PersistentSubscription(
+                PersistentSubscriptionParamsBuilder.CreateFor("streamName", "groupName")
+                    .WithEventLoader(new FakeStreamReader(x => { }))
+                    .WithCheckpointReader(reader)
+                    .WithCheckpointWriter(new FakeCheckpointWriter(x => { }))
+                    .WithMessageParker(new FakeMessageParker())
+                    .StartFromBeginning());
+            reader.Load(null);
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            var id3 = Guid.NewGuid();
+            var id4 = Guid.NewGuid();
+            sub.HandleReadCompleted(new[]
+            {
+                Helper.BuildFakeEvent(id1, "type", "streamName", 0),
+                Helper.BuildFakeEvent(id2, "type", "streamName", 1),
+                Helper.BuildFakeEvent(id3, "type", "streamName", 2),
+                Helper.BuildFakeEvent(id4, "type", "streamName", 3)
+            }, 1, false);
+            var result = sub.GetNextNOrLessMessages(2).ToArray();
+            Assert.AreEqual(2, result.Length);
+            Assert.AreEqual(id1, result[0].Event.EventId);
+            Assert.AreEqual(id2, result[1].Event.EventId);
+        }
+
+
+        [Test]
+        public void subscription_with_no_events_returns_no_events_to_the_client()
+        {
+            var reader = new FakeCheckpointReader();
+            var sub = new Core.Services.PersistentSubscription.PersistentSubscription(
+                PersistentSubscriptionParamsBuilder.CreateFor("streamName", "groupName")
+                    .WithEventLoader(new FakeStreamReader(x => { }))
+                    .WithCheckpointReader(reader)
+                    .WithCheckpointWriter(new FakeCheckpointWriter(x => { }))
+                    .WithMessageParker(new FakeMessageParker())
+                    .StartFromBeginning());
+            reader.Load(null);
+            var result = sub.GetNextNOrLessMessages(5);
+            Assert.AreEqual(0, result.Count());
+        }
+
+    }
+
+    [TestFixture]
     public class Checkpointing
     {
         [Test]
@@ -507,7 +608,7 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
                 Helper.BuildFakeEvent(Guid.NewGuid(), "type", "streamName", 1)
             }, 1, false);
             sub.AcknowledgeMessagesProcessed(corrid, new[] { id });
-            sub.NotifyClockTick(DateTime.Now);
+            sub.NotifyClockTick(DateTime.UtcNow);
             Assert.AreEqual(1, cp);
         }
 
@@ -538,7 +639,7 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
                 Helper.BuildFakeEvent(Guid.NewGuid(), "type", "streamName", 1)
             }, 1, false);
             sub.AcknowledgeMessagesProcessed(corrid, new[] { id });
-            sub.NotifyClockTick(DateTime.Now);
+            sub.NotifyClockTick(DateTime.UtcNow);
             Assert.AreEqual(1, cp);
         }
     }
@@ -571,7 +672,7 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
                 Helper.BuildFakeEvent(id2, "type", "streamName", 1)
             }, 1, false);
             envelope1.Replies.Clear();
-            sub.NotifyClockTick(DateTime.Now.AddSeconds(1));
+            sub.NotifyClockTick(DateTime.UtcNow.AddSeconds(1));
             Assert.AreEqual(0, envelope1.Replies.Count);
             Assert.AreEqual(0, parker.ParkedEvents.Count);
         }
@@ -603,12 +704,72 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
                 
             }, 1, false);
             envelope1.Replies.Clear();
-            sub.NotifyClockTick(DateTime.Now.AddSeconds(3));
+            sub.NotifyClockTick(DateTime.UtcNow.AddSeconds(3));
             Assert.AreEqual(2, envelope1.Replies.Count);
             var msg1 = (Messages.ClientMessage.PersistentSubscriptionStreamEventAppeared)envelope1.Replies[0];
             var msg2 = (Messages.ClientMessage.PersistentSubscriptionStreamEventAppeared)envelope1.Replies[1];
             Assert.IsTrue(id1 == msg1.Event.OriginalEvent.EventId || id1 == msg2.Event.OriginalEvent.EventId);
             Assert.IsTrue(id2 == msg1.Event.OriginalEvent.EventId || id2 == msg2.Event.OriginalEvent.EventId);
+            Assert.AreEqual(0, parker.ParkedEvents.Count);
+        }
+
+        [Test]
+        public void messages_get_timed_out_on_synchronous_reads()
+        {
+            var reader = new FakeCheckpointReader();
+            var parker = new FakeMessageParker();
+            var sub = new Core.Services.PersistentSubscription.PersistentSubscription(
+                PersistentSubscriptionParamsBuilder.CreateFor("streamName", "groupName")
+                    .WithEventLoader(new FakeStreamReader(x => { }))
+                    .WithCheckpointReader(reader)
+                    .WithCheckpointWriter(new FakeCheckpointWriter(i => { }))
+                    .WithMessageParker(parker)
+                    .PreferDispatchToSingle()
+                    .StartFromBeginning()
+                    .WithMessageTimeoutOf(TimeSpan.FromSeconds(1)));
+            reader.Load(null);
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            sub.HandleReadCompleted(new[]
+            {
+                Helper.BuildFakeEvent(id1, "type", "streamName", 0),
+                Helper.BuildFakeEvent(id2, "type", "streamName", 1)
+            }, 1, false);
+            sub.GetNextNOrLessMessages(2);
+            sub.NotifyClockTick(DateTime.Now.AddSeconds(3));
+            var retries = sub.GetNextNOrLessMessages(2).ToArray();
+            Assert.AreEqual(id1, retries[0].Event.EventId);
+            Assert.AreEqual(id2, retries[1].Event.EventId);
+            Assert.AreEqual(0, parker.ParkedEvents.Count);
+        }
+
+        [Test]
+        public void messages_dont_get_retried_when_acked_on_synchronous_reads()
+        {
+            var reader = new FakeCheckpointReader();
+            var parker = new FakeMessageParker();
+            var sub = new Core.Services.PersistentSubscription.PersistentSubscription(
+                PersistentSubscriptionParamsBuilder.CreateFor("streamName", "groupName")
+                    .WithEventLoader(new FakeStreamReader(x => { }))
+                    .WithCheckpointReader(reader)
+                    .WithCheckpointWriter(new FakeCheckpointWriter(i => { }))
+                    .WithMessageParker(parker)
+                    .PreferDispatchToSingle()
+                    .StartFromBeginning()
+                    .WithMessageTimeoutOf(TimeSpan.FromSeconds(1)));
+            reader.Load(null);
+            var id1 = Guid.NewGuid();
+            var id2 = Guid.NewGuid();
+            sub.HandleReadCompleted(new[]
+            {
+                Helper.BuildFakeEvent(id1, "type", "streamName", 0),
+                Helper.BuildFakeEvent(id2, "type", "streamName", 1)
+            }, 1, false);
+            sub.GetNextNOrLessMessages(2).ToArray();
+            sub.AcknowledgeMessagesProcessed(Guid.Empty, new[] { id1, id2 });
+            sub.NotifyClockTick(DateTime.Now.AddSeconds(3));
+            var retries = sub.GetNextNOrLessMessages(2).ToArray();
+            Assert.AreEqual(0, retries.Length);
             Assert.AreEqual(0, parker.ParkedEvents.Count);
         }
 
@@ -636,7 +797,7 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
                 Helper.BuildFakeEvent(id1, "type", "streamName", 0),
             }, 1, false);
             envelope1.Replies.Clear();
-            sub.NotifyClockTick(DateTime.Now.AddSeconds(3));
+            sub.NotifyClockTick(DateTime.UtcNow.AddSeconds(3));
             Assert.AreEqual(0, envelope1.Replies.Count);
             Assert.AreEqual(1, parker.ParkedEvents.Count);
             Assert.AreEqual(id1, parker.ParkedEvents[0].OriginalEvent.EventId);
@@ -668,7 +829,7 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
                 Helper.BuildFakeEvent(id2, "type", "streamName", 1),
             }, 1, false);
             envelope1.Replies.Clear();
-            sub.NotifyClockTick(DateTime.Now.AddSeconds(3));
+            sub.NotifyClockTick(DateTime.UtcNow.AddSeconds(3));
             Assert.AreEqual(0, envelope1.Replies.Count);
             Assert.AreEqual(2, parker.ParkedEvents.Count);
             Assert.IsTrue(id1 == parker.ParkedEvents[0].OriginalEvent.EventId ||
@@ -704,7 +865,7 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
             Assert.AreEqual(2, envelope1.Replies.Count);
 
             // Should expire first 2 and send to park.
-            sub.NotifyClockTick(DateTime.Now.AddSeconds(1));
+            sub.NotifyClockTick(DateTime.UtcNow.AddSeconds(1));
             parker.ParkMessageCompleted(0, OperationResult.Success);
             parker.ParkMessageCompleted(1, OperationResult.Success);
             Assert.AreEqual(2, parker.ParkedEvents.Count);
@@ -1070,12 +1231,12 @@ namespace EventStore.Core.Tests.Services.PersistentSubscription
         {
             return
                 ResolvedEvent.ForUnresolvedEvent(new EventRecord(version, 1234567, Guid.NewGuid(), id, 1234567, 1234, stream, version,
-                    DateTime.Now, PrepareFlags.SingleWrite, type, new byte[0], new byte[0]));
+                    DateTime.UtcNow, PrepareFlags.SingleWrite, type, new byte[0], new byte[0]));
         }
 
         public static ResolvedEvent BuildLinkEvent(Guid id, string stream, int version, ResolvedEvent ev, bool resolved = true)
         {
-            var link = new EventRecord(version, 1234567, Guid.NewGuid(), id, 1234567, 1234, stream, version, DateTime.Now, PrepareFlags.SingleWrite, SystemEventTypes.LinkTo, Encoding.UTF8.GetBytes(string.Format("{0}@{1}", ev.OriginalEventNumber, ev.OriginalStreamId)), new byte[0]);
+            var link = new EventRecord(version, 1234567, Guid.NewGuid(), id, 1234567, 1234, stream, version, DateTime.UtcNow, PrepareFlags.SingleWrite, SystemEventTypes.LinkTo, Encoding.UTF8.GetBytes(string.Format("{0}@{1}", ev.OriginalEventNumber, ev.OriginalStreamId)), new byte[0]);
             if (resolved)
                 return ResolvedEvent.ForResolvedLink(ev.Event, link);
             else

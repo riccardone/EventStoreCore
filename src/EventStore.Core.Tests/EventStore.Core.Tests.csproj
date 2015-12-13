@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -11,6 +11,8 @@
     <RootNamespace>EventStore.Core.Tests</RootNamespace>
     <AssemblyName>EventStore.Core.Tests</AssemblyName>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -23,6 +25,9 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>
+    </DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,6 +37,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EventStore.Rags, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -220,13 +226,19 @@
     <Compile Include="Http\ArgumentPassing\matching.cs" />
     <Compile Include="Http\BasicAuthentication\basic_authentication.cs" />
     <Compile Include="Http\HttpBehaviorSpecification.cs" />
+    <Compile Include="Http\PersistentSubscription\ack.cs" />
+    <Compile Include="Http\PersistentSubscription\feed.cs" />
+    <Compile Include="Http\PersistentSubscription\nack.cs" />
     <Compile Include="Http\PersistentSubscription\creating.cs" />
     <Compile Include="Http\PersistentSubscription\deleting.cs" />
+    <Compile Include="Http\PersistentSubscription\getting.cs" />
+    <Compile Include="Http\PersistentSubscription\parked.cs" />
     <Compile Include="Http\PersistentSubscription\statistics.cs" />
     <Compile Include="Http\PersistentSubscription\updating.cs" />
     <Compile Include="Http\StreamSecurity\SetUpFixture.cs" />
     <Compile Include="Http\StreamSecurity\SpecificationWithUsers.cs" />
     <Compile Include="Http\StreamSecurity\stream_access.cs" />
+    <Compile Include="Http\Streams\description_document.cs" />
     <Compile Include="Http\Streams\HttpSpecificationWithLinkToToDeletedEvents.cs" />
     <Compile Include="Http\Streams\HttpSpecificationWithLinkToToEvents.cs" />
     <Compile Include="Http\Streams\idempotency.cs" />
@@ -323,6 +335,7 @@
     <Compile Include="Services\PersistentSubscription\OutstandingMessageCacheTests.cs" />
     <Compile Include="Services\PersistentSubscription\PersistentSubscriptionConfigPersistence.cs" />
     <Compile Include="Services\PersistentSubscription\PersistentSubscriptionTests.cs" />
+    <Compile Include="Services\PersistentSubscription\PinnedConsumerStrategyTests.cs" />
     <Compile Include="Services\PersistentSubscription\StreamBufferTests.cs" />
     <Compile Include="Services\Replication\DeleteStream\when_delete_stream_gets_commit_timeout_after_commit.cs" />
     <Compile Include="Authentication\when_handling_multiple_requests_with_reset_password_cache_in_between.cs" />

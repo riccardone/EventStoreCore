@@ -18,6 +18,7 @@ using EventStore.Core.Tests.Http.Users;
 using NUnit.Framework;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using EventStore.ClientAPI.Transport.Http;
 
 namespace EventStore.Core.Tests.Http
 {
@@ -278,9 +279,15 @@ namespace EventStore.Core.Tests.Http
             return httpWebResponse;
         }
         
+        protected XDocument GetAtomXml(Uri uri, ICredentials credentials = null)
+        {
+            Get(uri.ToString(), "", ContentType.Atom, credentials);
+            return XDocument.Parse(_lastResponseBody);
+        }
+
         protected XDocument GetXml(Uri uri, ICredentials credentials = null)
         {
-            Get(uri.ToString(), "", "application/atom+xml", credentials);
+            Get(uri.ToString(), "", ContentType.Xml, credentials);
             return XDocument.Parse(_lastResponseBody);
         }
 
@@ -301,6 +308,25 @@ namespace EventStore.Core.Tests.Http
         protected T GetJson2<T>(string path, string extra, string accept = null, ICredentials credentials = null)
         {
             Get(path, extra, accept, credentials);
+            try
+            {
+                return _lastResponseBody.ParseJson<T>();
+            }
+            catch (JsonException ex)
+            {
+                _lastJsonException = ex;
+                return default(T);
+            }
+        }
+
+        protected T GetJsonWithoutAcceptHeader<T>(string path)
+        {
+            var request = CreateRequest(path, "", "GET", null);
+            _lastResponse = GetRequestResponse(request);
+            var memoryStream = new MemoryStream();
+            _lastResponse.GetResponseStream().CopyTo(memoryStream);
+            var bytes = memoryStream.ToArray();
+            _lastResponseBody = Helper.UTF8NoBom.GetString(bytes);
             try
             {
                 return _lastResponseBody.ParseJson<T>();

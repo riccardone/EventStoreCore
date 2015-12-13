@@ -7,6 +7,7 @@ using EventStore.Common.Utils;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
 using EventStore.Core.Messaging;
+using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 
 namespace EventStore.Core.Services.PersistentSubscription
 {
@@ -169,19 +170,24 @@ namespace EventStore.Core.Services.PersistentSubscription
             {
                 if (_state == PersistentSubscriptionState.NotReady) return;
 
-                while (true)
+                foreach (StreamBuffer.OutstandingMessagePointer messagePointer in _streamBuffer.Scan())
                 {
-                    OutstandingMessage message;
-                    if (!_streamBuffer.TryPeek(out message)) return;
-                    if (_pushClients.PushMessageToClient(message.ResolvedEvent) == ConsumerPushResult.NoMoreCapacity) return;
-                    if (!_streamBuffer.TryDequeue(out message))
+                    OutstandingMessage message = messagePointer.Message;
+                    ConsumerPushResult result = _pushClients.PushMessageToClient(message.ResolvedEvent);
+                    if (result == ConsumerPushResult.Sent)
                     {
-                        throw new WTFException(
-                            "This should never happen. Something is very wrong in the threading model.");
+                        messagePointer.MarkSent();
+                        MarkBeginProcessing(message);
+                        _lastKnownMessage = Math.Max(_lastKnownMessage, message.ResolvedEvent.OriginalEventNumber);
                     }
-                    if (message.ResolvedEvent.OriginalEventNumber > _lastKnownMessage)
-                        _lastKnownMessage = message.ResolvedEvent.OriginalEventNumber;
-                    MarkBeginProcessing(message);
+                    else if (result == ConsumerPushResult.Skipped)
+                    {                        
+                        // The consumer strategy skipped the message so leave it in the buffer and continue.
+                    }
+                    else if (result == ConsumerPushResult.NoMoreCapacity)
+                    {
+                        return;
+                    }
                 }
                 
             }
@@ -210,14 +216,11 @@ namespace EventStore.Core.Services.PersistentSubscription
         {
             lock (_lock)
             {
-                for (var i = 0; i < count; i++)
+                foreach (var messagePointer in _streamBuffer.Scan().Take(count))
                 {
-                    OutstandingMessage message;
-                    if (_streamBuffer.TryDequeue(out message))
-                    {
-                        MarkBeginProcessing(message);
-                        yield return message.ResolvedEvent;
-                    }
+                    messagePointer.MarkSent();
+                    MarkBeginProcessing(messagePointer.Message);
+                    yield return messagePointer.Message.ResolvedEvent;
                 }
             }
         }
@@ -289,7 +292,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                 //no outstanding messages. in this case we can say that the last known
                 //event would be our checkpoint place (we have already completed it)
                 var difference = lowest - _lastCheckPoint;
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
                 var timedifference = now - _lastCheckPointTime;
                 if (timedifference < _settings.CheckPointAfter && difference < _settings.MaxCheckPointCount) return;
                 if ((difference >= _settings.MinCheckPointCount && isTimeCheck) ||
@@ -308,7 +311,7 @@ namespace EventStore.Core.Services.PersistentSubscription
             lock (_lock)
             {
                 _outstandingMessages.StartMessage(new OutstandingMessage(ev.OriginalEvent.EventId, client, ev, 0),
-                    DateTime.Now + _settings.MessageTimeout);
+                    DateTime.UtcNow + _settings.MessageTimeout);
             }
         }
 
@@ -330,7 +333,7 @@ namespace EventStore.Core.Services.PersistentSubscription
                 foreach (var id in processedEventIds)
                 {
                     Log.Info("Message NAK'ed id {0} action to take {1} reason '{2}'", id, action, reason ?? "");
-                    HandleNakedMessage(action, id, reason);
+                    HandleNackedMessage(action, id, reason);
                 }
                 RemoveProcessingMessages(correlationId, processedEventIds);
                 TryMarkCheckpoint(false);
@@ -339,7 +342,7 @@ namespace EventStore.Core.Services.PersistentSubscription
             }
         }
 
-        private void HandleNakedMessage(NakAction action, Guid id, string reason)
+        private void HandleNackedMessage(NakAction action, Guid id, string reason)
         {
             OutstandingMessage e;
             switch (action)
@@ -529,11 +532,4 @@ namespace EventStore.Core.Services.PersistentSubscription
         }
     }
 
-    public class WTFException : Exception
-    {
-        public WTFException(string message)
-            : base(message)
-        {
-        }
-    }
 }

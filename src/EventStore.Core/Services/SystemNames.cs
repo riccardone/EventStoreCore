@@ -136,12 +136,14 @@ namespace EventStore.Core.Services
     public static class SystemUsers
     {
         public const string Admin = "admin";
+        public const string Operations = "ops";
         public const string DefaultAdminPassword = "changeit";
     }
 
     public static class SystemRoles
     {
         public const string Admins = "$admins";
+        public const string Operations = "$ops";
         public const string All = "$all";
     }
 
@@ -159,5 +161,11 @@ namespace EventStore.Core.Services
         /// Distribute events to each client in a round robin fashion.
         /// </summary>
         public const string RoundRobin = "RoundRobin";
+
+        /// <summary>
+        /// Distribute events of the same streamId to the same client until it disconnects on a best efforts basis. 
+        /// Designed to be used with indexes such as the category projection.
+        /// </summary>
+        public const string Pinned = "Pinned";
     }
 }

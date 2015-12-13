@@ -34,7 +34,7 @@ using EventStore.Core.Helpers;
 using EventStore.Core.Services.PersistentSubscription;
 using System.Threading;
 using EventStore.Core.Services.Histograms;
-using EventStore.Core.Services.Transport.Amqp;
+using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 
 namespace EventStore.Core
 {
@@ -438,6 +438,7 @@ namespace EventStore.Core
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<ClientMessage.PersistentSubscriptionNackEvents, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<ClientMessage.ReplayAllParkedMessages, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<ClientMessage.ReplayParkedMessage, Message>());
+            _mainBus.Subscribe(perSubscrQueue.WidenFrom<ClientMessage.ReadNextNPersistentMessages, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<StorageMessage.EventCommitted, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<MonitoringMessage.GetAllPersistentSubscriptionStats, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<MonitoringMessage.GetStreamPersistentSubscriptionStats, Message>());
@@ -445,7 +446,8 @@ namespace EventStore.Core
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<SubscriptionMessage.PersistentSubscriptionTimerTick, Message>());
 
             //TODO CC can have multiple threads working on subscription if partition
-            var persistentSubscription = new PersistentSubscriptionService(subscrQueue, readIndex, ioDispatcher, _mainQueue);
+            var consumerStrategyRegistry = new PersistentSubscriptionConsumerStrategyRegistry(_mainQueue, _mainBus, vNodeSettings.AdditionalConsumerStrategies);
+            var persistentSubscription = new PersistentSubscriptionService(subscrQueue, readIndex, ioDispatcher, _mainQueue, consumerStrategyRegistry);
             perSubscrBus.Subscribe<SystemMessage.BecomeShuttingDown>(persistentSubscription);
             perSubscrBus.Subscribe<SystemMessage.BecomeMaster>(persistentSubscription);
             perSubscrBus.Subscribe<SystemMessage.StateChangeMessage>(persistentSubscription);
@@ -460,6 +462,7 @@ namespace EventStore.Core
             perSubscrBus.Subscribe<ClientMessage.UpdatePersistentSubscription>(persistentSubscription);
             perSubscrBus.Subscribe<ClientMessage.ReplayAllParkedMessages>(persistentSubscription);
             perSubscrBus.Subscribe<ClientMessage.ReplayParkedMessage>(persistentSubscription);
+            perSubscrBus.Subscribe<ClientMessage.ReadNextNPersistentMessages>(persistentSubscription);
             perSubscrBus.Subscribe<MonitoringMessage.GetAllPersistentSubscriptionStats>(persistentSubscription);
             perSubscrBus.Subscribe<MonitoringMessage.GetStreamPersistentSubscriptionStats>(persistentSubscription);
             perSubscrBus.Subscribe<MonitoringMessage.GetPersistentSubscriptionStats>(persistentSubscription);
