@@ -98,93 +98,93 @@ namespace EventStore.Core.Tests.Services.Transport.Amqp
             Assert.AreEqual(sent, received.ToArray());
         }
 
-        public void AmqpSerializerListEncodingTest()
-        {
+        //public void AmqpSerializerListEncodingTest()
+        //{
             
 
-            // Create an object to be serialized
-            var p = new Student("Tom")
-            {
-                Address = new StreetAddress() { FullAddress = new string('B', 1024) },
-                Grades = new List<int>() { 1, 2, 3, 4, 5 }
-            };
+        //    // Create an object to be serialized
+        //    var p = new Student("Tom")
+        //    {
+        //        Address = new StreetAddress() { FullAddress = new string('B', 1024) },
+        //        Grades = new List<int>() { 1, 2, 3, 4, 5 }
+        //    };
 
-            p.Age = 20;
-            p.DateOfBirth = new DateTime(1980, 5, 12, 10, 2, 45, DateTimeKind.Utc);
-            p.Properties.Add("height", 6.1);
-            p.Properties.Add("male", true);
-            p.Properties.Add("nick-name", "big foot");
+        //    p.Age = 20;
+        //    p.DateOfBirth = new DateTime(1980, 5, 12, 10, 2, 45, DateTimeKind.Utc);
+        //    p.Properties.Add("height", 6.1);
+        //    p.Properties.Add("male", true);
+        //    p.Properties.Add("nick-name", "big foot");
 
-            byte[] workBuffer = new byte[4096];
-            ByteBuffer buffer = new ByteBuffer(workBuffer, 0, 0, workBuffer.Length);
+        //    byte[] workBuffer = new byte[4096];
+        //    ByteBuffer buffer = new ByteBuffer(workBuffer, 0, 0, workBuffer.Length);
 
-            AmqpSerializer.Serialize(buffer, p);
-            Assert.AreEqual(2, p.Version);
+        //    AmqpSerializer.Serialize(buffer, p);
+        //    Assert.AreEqual(2, p.Version);
 
-            // Deserialize and verify
-            Person p3 = AmqpSerializer.Deserialize<Person>(buffer);
-            Assert.AreEqual(2, p.Version);
-            personValidator(p, p3);
-            Assert.AreEqual(((Student)p).Address.FullAddress, ((Student)p3).Address.FullAddress);
-            gradesValidator(((Student)p).Grades, ((Student)p3).Grades);
+        //    // Deserialize and verify
+        //    Person p3 = AmqpSerializer.Deserialize<Person>(buffer);
+        //    Assert.AreEqual(2, p.Version);
+        //    personValidator(p, p3);
+        //    Assert.AreEqual(((Student)p).Address.FullAddress, ((Student)p3).Address.FullAddress);
+        //    gradesValidator(((Student)p).Grades, ((Student)p3).Grades);
 
-            // Inter-op: it should be an AMQP described list as other clients see it
-            buffer.Seek(0);
-            DescribedValue dl1 = AmqpSerializer.Deserialize<DescribedValue>(buffer);
-            Assert.AreEqual(dl1.Descriptor, 0x0000123400000001UL);
-            List lv = dl1.Value as List;
-            Assert.IsTrue(lv != null);
-            Assert.AreEqual(p.Name, lv[0]);
-            Assert.AreEqual(p.Age, lv[1]);
-            Assert.AreEqual(p.DateOfBirth.Value, lv[2]);
-            Assert.IsTrue(lv[3] is DescribedValue, "Address is decribed type");
-            Assert.AreEqual(((DescribedValue)lv[3]).Descriptor, 0x0000123400000003UL);
-            Assert.AreEqual(((List)((DescribedValue)lv[3]).Value)[0], ((Student)p).Address.FullAddress);
-            Assert.IsTrue(lv[4] is Map, "Properties should be map");
-            Assert.AreEqual(((Map)lv[4])["height"], p.Properties["height"]);
-            Assert.AreEqual(((Map)lv[4])["male"], p.Properties["male"]);
-            Assert.AreEqual(((Map)lv[4])["nick-name"], p.Properties["nick-name"]);
-            Assert.IsTrue(lv[5] is List);
+        //    // Inter-op: it should be an AMQP described list as other clients see it
+        //    buffer.Seek(0);
+        //    DescribedValue dl1 = AmqpSerializer.Deserialize<DescribedValue>(buffer);
+        //    Assert.AreEqual(dl1.Descriptor, 0x0000123400000001UL);
+        //    List lv = dl1.Value as List;
+        //    Assert.IsTrue(lv != null);
+        //    Assert.AreEqual(p.Name, lv[0]);
+        //    Assert.AreEqual(p.Age, lv[1]);
+        //    Assert.AreEqual(p.DateOfBirth.Value, lv[2]);
+        //    Assert.IsTrue(lv[3] is DescribedValue, "Address is decribed type");
+        //    Assert.AreEqual(((DescribedValue)lv[3]).Descriptor, 0x0000123400000003UL);
+        //    Assert.AreEqual(((List)((DescribedValue)lv[3]).Value)[0], ((Student)p).Address.FullAddress);
+        //    Assert.IsTrue(lv[4] is Map, "Properties should be map");
+        //    Assert.AreEqual(((Map)lv[4])["height"], p.Properties["height"]);
+        //    Assert.AreEqual(((Map)lv[4])["male"], p.Properties["male"]);
+        //    Assert.AreEqual(((Map)lv[4])["nick-name"], p.Properties["nick-name"]);
+        //    Assert.IsTrue(lv[5] is List);
 
-            // Non-default serializer
-            AmqpSerializer serializer = new AmqpSerializer();
-            ByteBuffer bf1 = new ByteBuffer(1024, true);
-            serializer.WriteObject(bf1, p);
+        //    // Non-default serializer
+        //    AmqpSerializer serializer = new AmqpSerializer();
+        //    ByteBuffer bf1 = new ByteBuffer(1024, true);
+        //    serializer.WriteObject(bf1, p);
 
-            Person p4 = serializer.ReadObject<Person>(bf1);
-            personValidator(p, p4);
+        //    Person p4 = serializer.ReadObject<Person>(bf1);
+        //    personValidator(p, p4);
 
-            // Extensible: more items in the payload should not break
-            DescribedValue dl2 = new DescribedValue(
-                new Symbol("test.amqp:teacher"),
-                new List() { "Jerry", 40, null, 50000, lv[4], null, null, "unknown-string", true, new Symbol("unknown-symbol") });
-            ByteBuffer bf2 = new ByteBuffer(1024, true);
-            serializer.WriteObject(bf2, dl2);
-            serializer.WriteObject(bf2, 100ul);
+        //    // Extensible: more items in the payload should not break
+        //    DescribedValue dl2 = new DescribedValue(
+        //        new Symbol("test.amqp:teacher"),
+        //        new List() { "Jerry", 40, null, 50000, lv[4], null, null, "unknown-string", true, new Symbol("unknown-symbol") });
+        //    ByteBuffer bf2 = new ByteBuffer(1024, true);
+        //    serializer.WriteObject(bf2, dl2);
+        //    serializer.WriteObject(bf2, 100ul);
 
-            Person p5 = serializer.ReadObject<Person>(bf2);
-            Assert.IsTrue(p5 is Teacher);
-            Assert.IsTrue(p5.DateOfBirth == null);  // nullable should work
-            Assert.AreEqual(100ul, serializer.ReadObject<object>(bf2));   // unknowns should be skipped
-            Assert.AreEqual(0, bf2.Length);
+        //    Person p5 = serializer.ReadObject<Person>(bf2);
+        //    Assert.IsTrue(p5 is Teacher);
+        //    Assert.IsTrue(p5.DateOfBirth == null);  // nullable should work
+        //    Assert.AreEqual(100ul, serializer.ReadObject<object>(bf2));   // unknowns should be skipped
+        //    Assert.AreEqual(0, bf2.Length);
 
-            // teacher
-            Teacher teacher = new Teacher("Han");
-            teacher.Age = 30;
-            teacher.Sallary = 60000;
-            teacher.Classes = new Dictionary<int, string>() { { 101, "CS" }, { 102, "Math" }, { 205, "Project" } };
+        //    // teacher
+        //    Teacher teacher = new Teacher("Han");
+        //    teacher.Age = 30;
+        //    teacher.Sallary = 60000;
+        //    teacher.Classes = new Dictionary<int, string>() { { 101, "CS" }, { 102, "Math" }, { 205, "Project" } };
 
-            ByteBuffer bf3 = new ByteBuffer(1024, true);
-            serializer.WriteObject(bf3, teacher);
+        //    ByteBuffer bf3 = new ByteBuffer(1024, true);
+        //    serializer.WriteObject(bf3, teacher);
 
-            Person p6 = serializer.ReadObject<Person>(bf3);
-            Assert.IsTrue(p6 is Teacher);
-            Assert.AreEqual(teacher.Age + 1, p6.Age);
-            Assert.AreEqual(teacher.Sallary * 2, ((Teacher)p6).Sallary);
-            Assert.AreEqual(teacher.Id, ((Teacher)p6).Id);
-            Assert.AreEqual(teacher.Classes[101], ((Teacher)p6).Classes[101]);
-            Assert.AreEqual(teacher.Classes[102], ((Teacher)p6).Classes[102]);
-            Assert.AreEqual(teacher.Classes[205], ((Teacher)p6).Classes[205]);
-        }
+        //    Person p6 = serializer.ReadObject<Person>(bf3);
+        //    Assert.IsTrue(p6 is Teacher);
+        //    Assert.AreEqual(teacher.Age + 1, p6.Age);
+        //    Assert.AreEqual(teacher.Sallary * 2, ((Teacher)p6).Sallary);
+        //    Assert.AreEqual(teacher.Id, ((Teacher)p6).Id);
+        //    Assert.AreEqual(teacher.Classes[101], ((Teacher)p6).Classes[101]);
+        //    Assert.AreEqual(teacher.Classes[102], ((Teacher)p6).Classes[102]);
+        //    Assert.AreEqual(teacher.Classes[205], ((Teacher)p6).Classes[205]);
+        //}
     }
 }

@@ -35,6 +35,7 @@ using EventStore.Core.Services.PersistentSubscription;
 using System.Threading;
 using EventStore.Core.Services.Histograms;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
+using EventStore.Core.Services.Transport.Amqp;
 
 namespace EventStore.Core
 {

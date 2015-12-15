@@ -139,7 +139,7 @@ namespace EventStore.Core.Cluster.Settings
             NodeInfo = new VNodeInfo(instanceId, debugIndex,
                                      internalTcpEndPoint, internalSecureTcpEndPoint,
                                      externalTcpEndPoint, externalSecureTcpEndPoint,
-                                     internalHttpEndPoint, externalHttpEndPoint, externalAmqpEndPoint);
+                                     internalHttpEndPoint, externalHttpEndPoint);
             GossipAdvertiseInfo = gossipAdvertiseInfo;
             IntHttpPrefixes = intHttpPrefixes;
             ExtHttpPrefixes = extHttpPrefixes;
