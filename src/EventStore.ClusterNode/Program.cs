@@ -287,7 +287,8 @@ namespace EventStore.ClusterNode
                     options.DisableHTTPCaching,
                     options.Index,
                     options.EnableHistograms,
-                    options.IndexCacheDepth,
+                    options.IndexCacheDepth, 
+                    extAmqp,
                     consumerStrategyFactories);
         }
 

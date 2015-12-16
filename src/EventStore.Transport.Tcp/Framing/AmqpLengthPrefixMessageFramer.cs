@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using EventStore.Common.Log;
 using EventStore.Common.Utils;
-using Amqp;
 
 namespace EventStore.Transport.Tcp.Framing
 {

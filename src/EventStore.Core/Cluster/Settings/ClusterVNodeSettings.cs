@@ -110,7 +110,8 @@ namespace EventStore.Core.Cluster.Settings
 				                    int maxMemtableEntryCount,
                                     bool startStandardProjections,
                                     bool disableHTTPCaching, string index = null, bool enableHistograms = false,
-                                    int indexCacheDepth = 16,
+                                    int indexCacheDepth = 16, 
+                                    IPEndPoint externalAmqpEndPoint = null,
                                     IPersistentSubscriptionConsumerStrategyFactory[] additionalConsumerStrategies = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
@@ -139,7 +140,7 @@ namespace EventStore.Core.Cluster.Settings
             NodeInfo = new VNodeInfo(instanceId, debugIndex,
                                      internalTcpEndPoint, internalSecureTcpEndPoint,
                                      externalTcpEndPoint, externalSecureTcpEndPoint,
-                                     internalHttpEndPoint, externalHttpEndPoint);
+                                     internalHttpEndPoint, externalHttpEndPoint, externalAmqpEndPoint);
             GossipAdvertiseInfo = gossipAdvertiseInfo;
             IntHttpPrefixes = intHttpPrefixes;
             ExtHttpPrefixes = extHttpPrefixes;
