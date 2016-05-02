@@ -50,8 +50,8 @@
       <HintPath>..\libs\protobuf-v2\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http">
-        <SpecificVersion>False</SpecificVersion>
-        <HintPath Condition=" '$(OS)' == 'Windows_NT' ">..\libs\Microsoft.Net.Http\System.Net.Http.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath Condition=" '$(OS)' == 'Windows_NT' ">..\libs\Microsoft.Net.Http\System.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -176,6 +176,7 @@
     <Compile Include="Messages\UserManagementMessage.cs" />
     <Compile Include="Messaging\RequestResponseDispatcher.cs" />
     <Compile Include="PluginModel\IAuthenticationPlugin.cs" />
+    <Compile Include="PluginModel\IEventAnalyser.cs" />
     <Compile Include="PluginModel\IPersistentSubscriptionConsumerStrategyPlugin.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeService.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeServiceMessage.cs" />

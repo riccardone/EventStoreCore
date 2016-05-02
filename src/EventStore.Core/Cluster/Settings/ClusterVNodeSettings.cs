@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using EventStore.Common.Utils;
 using EventStore.Core.Authentication;
 using EventStore.Core.Data;
+using EventStore.Core.PluginModel;
 using EventStore.Core.Services.Monitoring;
 using EventStore.Core.Services.PersistentSubscription;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
@@ -69,6 +70,8 @@ namespace EventStore.Core.Cluster.Settings
 
         public readonly IPersistentSubscriptionConsumerStrategyFactory[] AdditionalConsumerStrategies;
 
+        public readonly IEventAnalyser EventAnalyser;
+
         public ClusterVNodeSettings(Guid instanceId, int debugIndex,
                                     IPEndPoint internalTcpEndPoint,
                                     IPEndPoint internalSecureTcpEndPoint,
@@ -119,7 +122,7 @@ namespace EventStore.Core.Cluster.Settings
                                     int indexCacheDepth = 16,
                                     IPersistentSubscriptionConsumerStrategyFactory[] additionalConsumerStrategies = null,
                                     bool unsafeIgnoreHardDeletes = false,
-                                    bool betterOrdering = false)
+                                    bool betterOrdering = false, IEventAnalyser eventAnalyser = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -201,6 +204,8 @@ namespace EventStore.Core.Cluster.Settings
             Index = index;
             UnsafeIgnoreHardDeletes = unsafeIgnoreHardDeletes;
             BetterOrdering = betterOrdering;
+
+            EventAnalyser = eventAnalyser;
         }
 
 

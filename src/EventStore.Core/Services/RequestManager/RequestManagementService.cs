@@ -7,6 +7,7 @@ using EventStore.Core.Messaging;
 using EventStore.Core.Services.RequestManager.Managers;
 using EventStore.Core.Services.TimerService;
 using System.Diagnostics;
+using EventStore.Core.PluginModel;
 using EventStore.Core.Services.Histograms;
 
 namespace EventStore.Core.Services.RequestManager
@@ -42,12 +43,14 @@ namespace EventStore.Core.Services.RequestManager
         private readonly TimeSpan _prepareTimeout;
         private readonly TimeSpan _commitTimeout;
 
+        private IEventAnalyser _eventAnalyser;
+
         public RequestManagementService(IPublisher bus,
                                                              int prepareCount,
                                                              int commitCount,
                                                              TimeSpan prepareTimeout,
                                                              TimeSpan commitTimeout,
-                                                             bool betterOrdering)
+                                                             bool betterOrdering, IEventAnalyser eventAnalyser = null)
         {
             Ensure.NotNull(bus, "bus");
             Ensure.Nonnegative(prepareCount, "prepareCount");
@@ -63,6 +66,8 @@ namespace EventStore.Core.Services.RequestManager
             _prepareTimeout = prepareTimeout;
             _commitTimeout = commitTimeout;
             _betterOrdering = betterOrdering;
+
+            _eventAnalyser = eventAnalyser;
         }
 
         public void Handle(SystemMessage.SystemInit message)
@@ -76,6 +81,9 @@ namespace EventStore.Core.Services.RequestManager
             _currentRequests.Add(message.InternalCorrId, manager);
             _currentTimedRequests.Add(message.InternalCorrId, Stopwatch.StartNew());
             manager.Handle(message);
+
+            if (_eventAnalyser != null && !message.EventStreamId.StartsWith("$"))
+                _eventAnalyser.Save(message);
         }
 
         public void Handle(ClientMessage.DeleteStream message)

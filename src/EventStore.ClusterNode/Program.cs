@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
@@ -257,6 +258,7 @@ namespace EventStore.ClusterNode
             var plugInContainer = FindPlugins();
             var authenticationProviderFactory = GetAuthenticationProviderFactory(options.AuthenticationType, authenticationConfig, plugInContainer);
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
+            var eventAnalyser = GetEventAnalyser(plugInContainer);
             return new ClusterVNodeSettings(Guid.NewGuid(), 0,
                     intTcp, intSecTcp, extTcp, extSecTcp, intHttp, extHttp, gossipAdvertiseInfo,
                     intHttpPrefixes, extHttpPrefixes, options.EnableTrustedAuth,
@@ -287,7 +289,8 @@ namespace EventStore.ClusterNode
                     options.IndexCacheDepth,
                     consumerStrategyFactories,
                     options.UnsafeIgnoreHardDelete,
-                    options.BetterOrdering
+                    options.BetterOrdering,
+                    eventAnalyser
                     );
         }
 
@@ -306,6 +309,11 @@ namespace EventStore.ClusterNode
                 }
             }
             return null;
+        }
+
+        private static IEventAnalyser GetEventAnalyser(CompositionContainer plugInContainer)
+        {
+            return plugInContainer.GetExports<IEventAnalyser>().First().Value;
         }
 
         private static IPersistentSubscriptionConsumerStrategyFactory[] GetPlugInConsumerStrategyFactories(CompositionContainer plugInContainer)

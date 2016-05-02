@@ -11,6 +11,7 @@ using EventStore.Core.Bus;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
 using EventStore.Core.Messaging;
+using EventStore.Core.PluginModel;
 using EventStore.Core.Services.Histograms;
 using EventStore.Core.Services.Monitoring.Stats;
 using EventStore.Core.Services.Storage.EpochManager;
@@ -71,13 +72,15 @@ namespace EventStore.Core.Services.Storage
         private long _maxFlushDelay;
         private const string _writerFlushHistogram = "writer-flush";
 
+        private IEventAnalyser _eventAnalyser;
+
         public StorageWriterService(IPublisher bus, 
                                     ISubscriber subscribeToBus,
                                     TimeSpan minFlushDelay,
                                     TFChunkDb db,
                                     TFChunkWriter writer, 
                                     IIndexWriter indexWriter,
-                                    IEpochManager epochManager)
+                                    IEpochManager epochManager, IEventAnalyser eventAnalyser = null)
         {
             Ensure.NotNull(bus, "bus");
             Ensure.NotNull(subscribeToBus, "subscribeToBus");
@@ -116,6 +119,8 @@ namespace EventStore.Core.Services.Storage
             SubscribeToMessage<StorageMessage.WriteTransactionData>();
             SubscribeToMessage<StorageMessage.WriteTransactionPrepare>();
             SubscribeToMessage<StorageMessage.WriteCommit>();
+
+            _eventAnalyser = eventAnalyser;
         }
 
         protected void SubscribeToMessage<T>() where T: Message
