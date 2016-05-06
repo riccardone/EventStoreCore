@@ -50,8 +50,8 @@
       <HintPath>..\libs\protobuf-v2\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http">
-        <SpecificVersion>False</SpecificVersion>
-        <HintPath Condition=" '$(OS)' == 'Windows_NT' ">..\libs\Microsoft.Net.Http\System.Net.Http.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath Condition=" '$(OS)' == 'Windows_NT' ">..\libs\Microsoft.Net.Http\System.Net.Http.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -176,11 +176,15 @@
     <Compile Include="Messages\UserManagementMessage.cs" />
     <Compile Include="Messaging\RequestResponseDispatcher.cs" />
     <Compile Include="PluginModel\IAuthenticationPlugin.cs" />
+    <Compile Include="PluginModel\IEventProfilerStrategyPlugin.cs" />
     <Compile Include="PluginModel\IPersistentSubscriptionConsumerStrategyPlugin.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeService.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeServiceMessage.cs" />
     <Compile Include="Services\ClusterStorageWriterService.cs" />
     <Compile Include="Services\ElectionsService.cs" />
+    <Compile Include="Services\EventProfiler\EventProfilerService.cs" />
+    <Compile Include="Services\EventProfiler\Strategy\IEventProfilerStrategy.cs" />
+    <Compile Include="Services\EventProfiler\Strategy\IEventProfilerStrategyFactory.cs" />
     <Compile Include="Services\Gossip\DnsGossipSeedSource.cs" />
     <Compile Include="Services\Gossip\GossipServiceBase.cs" />
     <Compile Include="Services\Gossip\GossipState.cs" />

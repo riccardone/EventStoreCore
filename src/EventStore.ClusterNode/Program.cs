@@ -21,6 +21,7 @@ using EventStore.Core.TransactionLog.Chunks;
 using EventStore.Core.Util;
 using System.Net.NetworkInformation;
 using EventStore.Core.Data;
+using EventStore.Core.Services.EventProfiler.Strategy;
 using EventStore.Core.Services.PersistentSubscription;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 
@@ -257,6 +258,7 @@ namespace EventStore.ClusterNode
             var plugInContainer = FindPlugins();
             var authenticationProviderFactory = GetAuthenticationProviderFactory(options.AuthenticationType, authenticationConfig, plugInContainer);
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
+            var eventProfilerFactories = GetPlugInEventProfilerStrategyFactories(plugInContainer);
             return new ClusterVNodeSettings(Guid.NewGuid(), 0,
                     intTcp, intSecTcp, extTcp, extSecTcp, intHttp, extHttp, gossipAdvertiseInfo,
                     intHttpPrefixes, extHttpPrefixes, options.EnableTrustedAuth,
@@ -287,7 +289,8 @@ namespace EventStore.ClusterNode
                     options.IndexCacheDepth,
                     consumerStrategyFactories,
                     options.UnsafeIgnoreHardDelete,
-                    options.BetterOrdering
+                    options.BetterOrdering,
+                    eventProfilerFactories
                     );
         }
 
@@ -306,6 +309,29 @@ namespace EventStore.ClusterNode
                 }
             }
             return null;
+        }
+
+        private static IEventProfilerStrategyFactory[] GetPlugInEventProfilerStrategyFactories(CompositionContainer plugInContainer)
+        {
+            var allPlugins = plugInContainer.GetExports<IEventProfilerStrategyPlugin>();
+
+            var strategyFactories = new List<IEventProfilerStrategyFactory>();
+
+            foreach (var potentialPlugin in allPlugins)
+            {
+                try
+                {
+                    var plugin = potentialPlugin.Value;
+                    Log.Info("Loaded EventProfiler strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
+                    strategyFactories.Add(plugin.GetStrategyFactory());
+                }
+                catch (CompositionException ex)
+                {
+                    Log.ErrorException(ex, "Error loading EventProfiler strategy plugin.");
+                }
+            }
+
+            return strategyFactories.ToArray();
         }
 
         private static IPersistentSubscriptionConsumerStrategyFactory[] GetPlugInConsumerStrategyFactories(CompositionContainer plugInContainer)
