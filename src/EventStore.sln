@@ -37,6 +37,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.ClientAPI.Embedd
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Profilers.ElasticSearch", "EventStore.Profilers.ElasticSearch\EventStore.Profilers.ElasticSearch.csproj", "{B8EE11F9-C236-4725-B5A9-8E7883698778}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Profilers.Neo4J", "EventStore.Profilers.Neo4J\EventStore.Profilers.Neo4J.csproj", "{694E0550-D5B4-485D-964B-2759CA5595E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,10 @@ Global
 		{B8EE11F9-C236-4725-B5A9-8E7883698778}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8EE11F9-C236-4725-B5A9-8E7883698778}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8EE11F9-C236-4725-B5A9-8E7883698778}.Release|Any CPU.Build.0 = Release|Any CPU
+		{694E0550-D5B4-485D-964B-2759CA5595E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{694E0550-D5B4-485D-964B-2759CA5595E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{694E0550-D5B4-485D-964B-2759CA5595E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{694E0550-D5B4-485D-964B-2759CA5595E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

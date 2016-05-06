@@ -6,6 +6,7 @@ namespace EventStore.Core.Services.EventProfiler.Strategy
     {
         string Name { get; }
 
+        // TODO do it asynch
         EventProfilerPushResult PushMessageToProfiler(string streamId, ResolvedEvent ev);
     }
 
