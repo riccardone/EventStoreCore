@@ -46,9 +46,7 @@ namespace EventStore.Core.Services.EventProfiler
         {
             var pair = ResolvedEvent.ForUnresolvedEvent(evnt, commitPosition);
             foreach (var eventProfilerStrategy in _profilers)
-            {
                 eventProfilerStrategy.Value.PushMessageToProfiler(eventStreamId, pair);
-            }
         }
 
         public void Handle(SystemMessage.BecomeMaster message)

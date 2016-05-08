@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using EventStore.Core.Data;
 using EventStore.Core.Services.EventProfiler.Strategy;
 using EventStore.Profilers.Neo4J.Nodes;
@@ -9,7 +10,7 @@ namespace EventStore.Profilers.Neo4J
     public class Neo4JProfilerStrategy : IEventProfilerStrategy
     {
         public string Name { get { return "Neo4JProfiler"; } }
-        public EventProfilerPushResult PushMessageToProfiler(string streamId, ResolvedEvent ev)
+        public void PushMessageToProfiler(string streamId, ResolvedEvent ev)
         {
             // this assume your neo4j-server.properties file authentication setting set to false
             // dbms.security.auth_enabled=false
@@ -22,8 +23,7 @@ namespace EventStore.Profilers.Neo4J
                 Data = ev.OriginalEvent.DebugDataView
             };
             using (var client = new WebClient())
-                client.UploadString(urlReq, "POST", JsonConvert.SerializeObject(obj)); 
-            return EventProfilerPushResult.Sent;
+                client.UploadStringAsync(new Uri(urlReq), "POST", JsonConvert.SerializeObject(obj)); 
         }
     }
 }
