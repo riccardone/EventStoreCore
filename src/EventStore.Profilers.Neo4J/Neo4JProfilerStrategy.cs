@@ -14,13 +14,14 @@ namespace EventStore.Profilers.Neo4J
         {
             // this assume your neo4j-server.properties file authentication setting set to false
             // dbms.security.auth_enabled=false
-            var urlReq = "http://localhost:7474/db/data";
+            var urlReq = "http://localhost:7474/db/data/node";
             var obj = new NodeEvent
             {
                 Id = ev.OriginalEvent.EventId.ToString(),
                 EventType = ev.OriginalEvent.EventType,
                 StreamId = ev.OriginalEvent.EventStreamId,
-                Data = ev.OriginalEvent.DebugDataView
+                Data = ev.OriginalEvent.DebugDataView,
+                TimeStamp = ev.OriginalEvent.TimeStamp
             };
             using (var client = new WebClient())
                 client.UploadStringAsync(new Uri(urlReq), "POST", JsonConvert.SerializeObject(obj)); 

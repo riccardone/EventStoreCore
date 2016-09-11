@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace EventStore.Profilers.Neo4J.Nodes
+namespace EventStore.Profilers.ElasticSearch.Documents
 {
     public class NodeEvent
     {
