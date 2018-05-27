@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Reflection;
-using EventStore.Common.Log;
+using Serilog;
 
 namespace EventStore.Common.Utils
 {
@@ -15,7 +15,7 @@ namespace EventStore.Common.Utils
 
     public class OS
     {
-        private static readonly ILogger Log = LogManager.GetLoggerFor<OS>();
+        private static readonly ILogger Log = Serilog.Log.ForContext<OS>();
 
         public static readonly OsFlavor OsFlavor = DetermineOSFlavor();
 
@@ -59,7 +59,7 @@ namespace EventStore.Common.Utils
             }
             catch (Exception ex)
             {
-                Log.ErrorException(ex, "Couldn't determine the flavor of Unix-like OS.");
+                Log.Error(ex, "Couldn't determine the flavor of Unix-like OS.");
             }
             uname = uname.Trim().ToLower();
             switch (uname)

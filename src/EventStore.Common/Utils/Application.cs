@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using EventStore.Common.Log;
+using Serilog;
 
 namespace EventStore.Common.Utils
 {
@@ -20,7 +20,7 @@ namespace EventStore.Common.Utils
         public const string AlwaysKeepScavenged = "ALWAYS_KEEP_SCAVENGED";
         public const string DisableMergeChunks = "DISABLE_MERGE_CHUNKS";
 
-        protected static readonly ILogger Log = LogManager.GetLoggerFor<Application>();
+        protected static readonly ILogger Log = Serilog.Log.ForContext<Application>();
 
         private static Action<int> _exit;
         private static int _exited;
@@ -63,7 +63,7 @@ namespace EventStore.Common.Utils
                 if (exitCode != 0)
                     Log.Error(message);
                 else
-                    Log.Info(message);
+                    Log.Information(message);
             }
 
             var exit = _exit;

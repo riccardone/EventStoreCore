@@ -1,6 +1,6 @@
 using System;
 using System.Text;
-using EventStore.Common.Log;
+using Serilog;
 using EventStore.Common.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -12,7 +12,7 @@ namespace EventStore.Transport.Http.Codecs
     {
         public static Formatting Formatting = Formatting.Indented;
 
-        private static readonly ILogger Log = LogManager.GetLoggerFor<JsonCodec>();
+        private static readonly ILogger Log = Serilog.Log.ForContext<JsonCodec>();
         private static readonly JsonSerializerSettings FromSettings = new JsonSerializerSettings
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
