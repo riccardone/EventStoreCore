@@ -185,11 +185,16 @@
     <Compile Include="Messages\UserManagementMessage.cs" />
     <Compile Include="Messaging\RequestResponseDispatcher.cs" />
     <Compile Include="PluginModel\IAuthenticationPlugin.cs" />
+    <Compile Include="PluginModel\IGeoReplicaPlugin.cs" />
     <Compile Include="PluginModel\IPersistentSubscriptionConsumerStrategyPlugin.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeService.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeServiceMessage.cs" />
     <Compile Include="Services\ClusterStorageWriterService.cs" />
     <Compile Include="Services\ElectionsService.cs" />
+    <Compile Include="Services\GeoReplica\FakeGeoReplicaFactory.cs" />
+    <Compile Include="Services\GeoReplica\GeoReplicaService.cs" />
+    <Compile Include="Services\GeoReplica\IGeoReplica.cs" />
+    <Compile Include="Services\GeoReplica\IGeoReplicaFactory.cs" />
     <Compile Include="Services\Gossip\DnsGossipSeedSource.cs" />
     <Compile Include="Services\Gossip\GossipServiceBase.cs" />
     <Compile Include="Services\Gossip\GossipState.cs" />
