@@ -1,18 +1,25 @@
 ﻿using System.Threading.Tasks;
-using EventStore.Core.Data;
+using EventStore.ClientAPI;
 using EventStore.Core.Services.GeoReplica;
 
 namespace EventStore.GeoReplica.Tcp
 {
     public class GeoReplicaOverTcp : IGeoReplica
     {
+        private readonly IEventStoreConnection _connection;
         public string Name { get; }
 
-        public async Task DispatchAsynch(long version, ResolvedEvent evt, byte[] metadata)
+        public GeoReplicaOverTcp(string name, IEventStoreConnection connection)
         {
-            // TODO how to get a IEventStoreConnection to a remote destination?
-            // TODO AppendToStream...
-            return;
+            Name = name;
+            _connection = connection;
+        }
+
+        public async Task DispatchAsynch(long version, Core.Data.ResolvedEvent evt, byte[] metadata)
+        {
+            await _connection.AppendToStreamAsync(evt.OriginalStreamId, version,
+                new EventData(evt.Event.EventId, evt.Event.EventType, evt.OriginalEvent.IsJson, evt.Event.Data,
+                    metadata));
         }
     }
 }

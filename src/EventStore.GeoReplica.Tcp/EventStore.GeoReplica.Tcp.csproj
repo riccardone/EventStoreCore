@@ -47,6 +47,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\EventStore.ClientAPI\EventStore.ClientAPI.csproj">
+      <Project>{c7c0a3c2-a0eb-4ff4-a0cd-67eadf3f553f}</Project>
+      <Name>EventStore.ClientAPI</Name>
+    </ProjectReference>
     <ProjectReference Include="..\EventStore.Core\EventStore.Core.csproj">
       <Project>{d42a5833-4f20-4fcc-b364-6207ae016732}</Project>
       <Name>EventStore.Core</Name>
