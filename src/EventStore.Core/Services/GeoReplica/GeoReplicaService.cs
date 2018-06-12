@@ -17,7 +17,7 @@ namespace EventStore.Core.Services.GeoReplica
         private readonly string _conflictDetectedEventType;
         private readonly string _sourceGuid;
         private static readonly ILogger Log = LogManager.GetLoggerFor<GeoReplicaService>();
-        private bool _started;
+        //private bool _started;
         private IGeoReplicaFactory _geoReplicaFactory;
         private Dictionary<string, IGeoReplica> _destinations; // 1. DestinationGuid, 2. Http or Tcp dispatcher
 
@@ -34,7 +34,7 @@ namespace EventStore.Core.Services.GeoReplica
         private void Start()
         {
             _destinations = _geoReplicaFactory.Create();
-            _started = true;
+            //_started = true;
         }
 
         public void Handle(SystemMessage.BecomeMaster message)
