@@ -18,6 +18,7 @@ using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Util;
 using System.Net.NetworkInformation;
 using EventStore.Core.Data;
+using EventStore.Core.Services.GeoReplica;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 
 namespace EventStore.ClusterNode
@@ -217,7 +218,8 @@ namespace EventStore.ClusterNode
                         .AdvertiseExternalSecureTCPPortAs(options.ExtSecureTcpPortAdvertiseAs)
                         .HavingReaderThreads(options.ReaderThreadsCount)
                         .WithConnectionPendingSendBytesThreshold(options.ConnectionPendingSendBytesThreshold)
-                        .WithChunkInitialReaderCount(options.ChunkInitialReaderCount);
+                        .WithChunkInitialReaderCount(options.ChunkInitialReaderCount)
+                        .WithGeoReplicaSettings();
 
             if(options.GossipSeed.Length > 0)
                 builder.WithGossipSeeds(options.GossipSeed);
@@ -308,8 +310,31 @@ namespace EventStore.ClusterNode
             var authenticationProviderFactory = GetAuthenticationProviderFactory(options.AuthenticationType, authenticationConfig, plugInContainer);
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
             builder.WithAuthenticationProvider(authenticationProviderFactory);
-
+            builder.WithGeoReplica();
             return builder.Build(options, consumerStrategyFactories);
+        }
+
+        private static IGeoReplicaFactory[] GetPlugInGeoReplicaStrategyFactories(CompositionContainer plugInContainer)
+        {
+            var allPlugins = plugInContainer.GetExports<IGeoReplicaPlugin>();
+
+            var strategyFactories = new List<IGeoReplicaFactory>();
+
+            foreach (var potentialPlugin in allPlugins)
+            {
+                try
+                {
+                    var plugin = potentialPlugin.Value;
+                    Log.Info("Loaded GeoReplica strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
+                    strategyFactories.Add(plugin.GetStrategyFactory());
+                }
+                catch (CompositionException ex)
+                {
+                    Log.ErrorException(ex, "Error loading GeoReplica strategy plugin.");
+                }
+            }
+
+            return strategyFactories.ToArray();
         }
 
         private static IPersistentSubscriptionConsumerStrategyFactory[] GetPlugInConsumerStrategyFactories(CompositionContainer plugInContainer)

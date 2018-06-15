@@ -5,6 +5,6 @@ namespace EventStore.Core.Services.GeoReplica
     public interface IGeoReplicaFactory
     {
         string Name { get; }
-        Dictionary<string, IGeoReplica> Create();
+        KeyValuePair<string, IGeoReplica> Create();
     }
 }

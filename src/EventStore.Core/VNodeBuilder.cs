@@ -18,6 +18,7 @@ using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Data;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 using EventStore.Core.Index;
+using EventStore.Core.Services.GeoReplica;
 
 namespace EventStore.Core
 {
@@ -131,6 +132,8 @@ namespace EventStore.Core
         protected bool _skipIndexScanOnReads;
 
         private bool _gossipOnSingleNode;
+
+        protected IGeoReplicaFactory[] _geoReplicaFactories;
         // ReSharper restore FieldCanBeMadeReadOnly.Local
 
         protected VNodeBuilder()
@@ -218,6 +221,14 @@ namespace EventStore.Core
             _skipIndexScanOnReads = Opts.SkipIndexScanOnReadsDefault;
             _chunkInitialReaderCount = Opts.ChunkInitialReaderCountDefault;
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
+        }
+
+        public VNodeBuilder WithGeoReplica(IGeoReplicaFactory[] geoReplicaFactories)
+        {
+            // TODO load settings from a setting file (yaml ?)
+            //var settings = new GeoReplicaInfo("origin", "georeplica-position", "GeoPositionUpdated", "ConflictDetected", "eeccf5ce-4f54-409d-8870-b35dd836cca6");
+            _geoReplicaFactories = geoReplicaFactories;
+            return this;
         }
 
         protected VNodeBuilder WithSingleNodeSettings()

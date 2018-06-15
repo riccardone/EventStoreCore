@@ -6,6 +6,6 @@ namespace EventStore.Core.PluginModel
     {
         string Name { get; }
         string Version { get; }
-        IGeoReplicaFactory GetGeoReplicaFactory();
+        IGeoReplicaFactory GetStrategyFactory();
     }
 }

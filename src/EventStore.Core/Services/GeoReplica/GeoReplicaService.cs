@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using EventStore.Common.Log;
 using EventStore.Core.Bus;
+using EventStore.Core.Data;
 using EventStore.Core.Messages;
 using Newtonsoft.Json;
 
@@ -12,28 +13,33 @@ namespace EventStore.Core.Services.GeoReplica
     public class GeoReplicaService : IHandle<SystemMessage.BecomeMaster>, IHandle<StorageMessage.EventCommitted>
     {
         private readonly string _originMetadataKey;
-        private readonly string _positionStreamName;
+        //private readonly string _positionStreamName;
         private readonly string _positionEventType;
         private readonly string _conflictDetectedEventType;
         private readonly string _sourceGuid;
         private static readonly ILogger Log = LogManager.GetLoggerFor<GeoReplicaService>();
         //private bool _started;
-        private IGeoReplicaFactory _geoReplicaFactory;
+        private IGeoReplicaFactory[] _geoReplicaFactories;
         private Dictionary<string, IGeoReplica> _destinations; // 1. DestinationGuid, 2. Http or Tcp dispatcher
 
-        public GeoReplicaService(string originMetadataKey, string positionStreamName, string positionEventType,
-            string conflictDetectedEventType, string sourceGuid)
+        public GeoReplicaService(IGeoReplicaFactory[] geoReplicaFactories)
         {
-            _originMetadataKey = originMetadataKey;
-            _positionStreamName = positionStreamName;
-            _positionEventType = positionEventType;
-            _conflictDetectedEventType = conflictDetectedEventType;
-            _sourceGuid = sourceGuid;
+            _originMetadataKey = "origin";
+            //_positionStreamName = "georeplica-position";
+            _positionEventType = "GeoPositionUpdated";
+            _conflictDetectedEventType = "ConflictDetected";
+            _sourceGuid = "eeccf5ce-4f54-409d-8870-b35dd836cca6"; // TODO load from config
+            _geoReplicaFactories = geoReplicaFactories;
+            LoadConfiguration(Start);
         }
 
         private void Start()
         {
-            _destinations = _geoReplicaFactory.Create();
+            foreach (var geoReplicaFactory in _geoReplicaFactories)
+            {
+                var element = geoReplicaFactory.Create();
+                _destinations.Add(element.Key, element.Value);
+            }
             //_started = true;
         }
 
@@ -41,7 +47,7 @@ namespace EventStore.Core.Services.GeoReplica
         {
             Log.Debug("GeoReplicaService Became Master. It's time to send committed messages to the destinations.");
             InitOrEmpty();
-            LoadConfiguration(Start);
+            
         }
 
         private void InitOrEmpty()
@@ -52,7 +58,7 @@ namespace EventStore.Core.Services.GeoReplica
         private void LoadConfiguration(Action continueWith)
         {
             // TODO
-            _geoReplicaFactory = new FakeGeoReplicaFactory();
+            //_geoReplicaFactory = new FakeGeoReplicaFactory();
 
             continueWith();
         }
