@@ -4,12 +4,12 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A6AAC169-363D-417D-A595-72202224C022}</ProjectGuid>
+    <ProjectGuid>{F853AD1D-D328-4169-9A85-94D500844AFF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EventStore.GeoReplica.Tcp</RootNamespace>
-    <AssemblyName>EventStore.GeoReplica.Tcp</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <RootNamespace>EventStore.Plugins</RootNamespace>
+    <AssemblyName>EventStore.Plugins</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -31,7 +31,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -41,20 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GeoReplicaOverTcp.cs" />
-    <Compile Include="GeoReplicaOverTcpFactory.cs" />
-    <Compile Include="GeoReplicaTcpPlugin.cs" />
+    <Compile Include="Dispatcher\IDispatcher.cs" />
+    <Compile Include="Dispatcher\IDispatcherFactory.cs" />
+    <Compile Include="Dispatcher\IDispatcherPlugin.cs" />
+    <Compile Include="IEventStorePlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\EventStore.ClientAPI\EventStore.ClientAPI.csproj">
-      <Project>{c7c0a3c2-a0eb-4ff4-a0cd-67eadf3f553f}</Project>
-      <Name>EventStore.ClientAPI</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\EventStore.Core\EventStore.Core.csproj">
-      <Project>{d42a5833-4f20-4fcc-b364-6207ae016732}</Project>
-      <Name>EventStore.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

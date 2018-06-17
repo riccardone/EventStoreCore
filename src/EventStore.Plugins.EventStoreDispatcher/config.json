@@ -1,0 +1,14 @@
+{
+  "origin": {
+    "name": "local",
+    "id": "eeccf5ce-4f54-409d-8870-b35dd836cca6"
+  },
+  "destinations": [
+    {
+      "name": "local",
+      "id": "eeccf4ce-4f54-409d-8870-b35dd836cca6",
+      "connectionString": "tcp://admin:changeit@localhost:1113"
+      //"connectionString": "http://admin:changeit@178.62.75.183:2113"
+    }
+  ]
+}

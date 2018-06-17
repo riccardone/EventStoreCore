@@ -454,7 +454,7 @@ namespace EventStore.Core
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<MonitoringMessage.GetPersistentSubscriptionStats, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<SubscriptionMessage.PersistentSubscriptionTimerTick, Message>());
 
-            var geoReplicaService = new GeoReplicaService(vNodeSettings.GeoReplicaInfo);
+            var geoReplicaService = new GeoReplicaService(vNodeSettings.DispatcherFactories);
             _mainBus.Subscribe<SystemMessage.BecomeMaster>(geoReplicaService);
             _mainBus.Subscribe<StorageMessage.EventCommitted>(geoReplicaService);
             //_mainBus.Subscribe<SystemMessage.StateChangeMessage>(profilerService);

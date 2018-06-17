@@ -185,16 +185,12 @@
     <Compile Include="Messages\UserManagementMessage.cs" />
     <Compile Include="Messaging\RequestResponseDispatcher.cs" />
     <Compile Include="PluginModel\IAuthenticationPlugin.cs" />
-    <Compile Include="PluginModel\IGeoReplicaPlugin.cs" />
     <Compile Include="PluginModel\IPersistentSubscriptionConsumerStrategyPlugin.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeService.cs" />
     <Compile Include="Services\AwakeReaderService\AwakeServiceMessage.cs" />
     <Compile Include="Services\ClusterStorageWriterService.cs" />
     <Compile Include="Services\ElectionsService.cs" />
-    <Compile Include="Services\GeoReplica\FakeGeoReplicaFactory.cs" />
     <Compile Include="Services\GeoReplica\GeoReplicaService.cs" />
-    <Compile Include="Services\GeoReplica\IGeoReplica.cs" />
-    <Compile Include="Services\GeoReplica\IGeoReplicaFactory.cs" />
     <Compile Include="Services\Gossip\DnsGossipSeedSource.cs" />
     <Compile Include="Services\Gossip\GossipServiceBase.cs" />
     <Compile Include="Services\Gossip\GossipState.cs" />
@@ -446,6 +442,10 @@
     <ProjectReference Include="..\EventStore.Common\EventStore.Common.csproj">
       <Project>{B4C9BE3D-43B1-4049-A23A-5DC53DB3F0B0}</Project>
       <Name>EventStore.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\EventStore.Plugins\EventStore.Plugins.csproj">
+      <Project>{f853ad1d-d328-4169-9a85-94d500844aff}</Project>
+      <Name>EventStore.Plugins</Name>
     </ProjectReference>
     <ProjectReference Include="..\EventStore.Transport.Http\EventStore.Transport.Http.csproj">
       <Project>{30AF4820-DC60-4674-9E19-C4518445545A}</Project>

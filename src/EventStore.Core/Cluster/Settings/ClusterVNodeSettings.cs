@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
@@ -8,6 +7,7 @@ using EventStore.Core.Authentication;
 using EventStore.Core.Data;
 using EventStore.Core.Services.Monitoring;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
+using EventStore.Plugins.Dispatcher;
 
 namespace EventStore.Core.Cluster.Settings
 {
@@ -77,70 +77,73 @@ namespace EventStore.Core.Cluster.Settings
         public readonly bool AlwaysKeepScavenged;
         public readonly bool SkipIndexScanOnReads;
 
+        public readonly IDispatcherFactory[] DispatcherFactories;
+
         public readonly bool GossipOnSingleNode;
 
         public ClusterVNodeSettings(Guid instanceId, int debugIndex,
-                                    IPEndPoint internalTcpEndPoint,
-                                    IPEndPoint internalSecureTcpEndPoint,
-                                    IPEndPoint externalTcpEndPoint,
-                                    IPEndPoint externalSecureTcpEndPoint,
-                                    IPEndPoint internalHttpEndPoint,
-                                    IPEndPoint externalHttpEndPoint,
-                                    GossipAdvertiseInfo gossipAdvertiseInfo,
-                                    string[] intHttpPrefixes,
-                                    string[] extHttpPrefixes,
-                                    bool enableTrustedAuth,
-                                    X509Certificate2 certificate,
-                                    int workerThreads,
-                                    bool discoverViaDns,
-                                    string clusterDns,
-                                    IPEndPoint[] gossipSeeds,
-                                    TimeSpan minFlushDelay,
-                                    int clusterNodeCount,
-                                    int prepareAckCount,
-                                    int commitAckCount,
-                                    TimeSpan prepareTimeout,
-                                    TimeSpan commitTimeout,
-                                    bool useSsl,
-                                    bool disableInsecureTCP,
-                                    string sslTargetHost,
-                                    bool sslValidateServer,
-                                    TimeSpan statsPeriod,
-                                    StatsStorage statsStorage,
-                                    int nodePriority,
-                                    IAuthenticationProviderFactory authenticationProviderFactory,
-                                    bool disableScavengeMerging,
-                                    int scavengeHistoryMaxAge,
-                                    bool adminOnPublic,
-                                    bool statsOnPublic,
-                                    bool gossipOnPublic,
-                                    TimeSpan gossipInterval,
-                                    TimeSpan gossipAllowedTimeDifference,
-                                    TimeSpan gossipTimeout,
-                                    TimeSpan intTcpHeartbeatTimeout,
-                                    TimeSpan intTcpHeartbeatInterval,
-                                    TimeSpan extTcpHeartbeatTimeout,
-                                    TimeSpan extTcpHeartbeatInterval,
-				                    bool verifyDbHash,
-				                    int maxMemtableEntryCount,
-                                    int hashCollisionReadLimit,
-                                    bool startStandardProjections,
-                                    bool disableHTTPCaching,
-                                    bool logHttpRequests,
-                                    int connectionPendingSendBytesThreshold,
-                                    int chunkInitialReaderCount,
-                                    string index = null, bool enableHistograms = false,
-                                    bool skipIndexVerify = false,
-                                    int indexCacheDepth = 16,
-                                    byte indexBitnessVersion = 4,
-                                    bool optimizeIndexMerge = false,
-                                    IPersistentSubscriptionConsumerStrategyFactory[] additionalConsumerStrategies = null,
-                                    bool unsafeIgnoreHardDeletes = false,
-                                    bool betterOrdering = false,
-                                    int readerThreadsCount = 4,
-                                    bool alwaysKeepScavenged = false,
-                                    bool gossipOnSingleNode = false,
-                                    bool skipIndexScanOnReads = false)
+            IPEndPoint internalTcpEndPoint,
+            IPEndPoint internalSecureTcpEndPoint,
+            IPEndPoint externalTcpEndPoint,
+            IPEndPoint externalSecureTcpEndPoint,
+            IPEndPoint internalHttpEndPoint,
+            IPEndPoint externalHttpEndPoint,
+            GossipAdvertiseInfo gossipAdvertiseInfo,
+            string[] intHttpPrefixes,
+            string[] extHttpPrefixes,
+            bool enableTrustedAuth,
+            X509Certificate2 certificate,
+            int workerThreads,
+            bool discoverViaDns,
+            string clusterDns,
+            IPEndPoint[] gossipSeeds,
+            TimeSpan minFlushDelay,
+            int clusterNodeCount,
+            int prepareAckCount,
+            int commitAckCount,
+            TimeSpan prepareTimeout,
+            TimeSpan commitTimeout,
+            bool useSsl,
+            bool disableInsecureTCP,
+            string sslTargetHost,
+            bool sslValidateServer,
+            TimeSpan statsPeriod,
+            StatsStorage statsStorage,
+            int nodePriority,
+            IAuthenticationProviderFactory authenticationProviderFactory,
+            bool disableScavengeMerging,
+            int scavengeHistoryMaxAge,
+            bool adminOnPublic,
+            bool statsOnPublic,
+            bool gossipOnPublic,
+            TimeSpan gossipInterval,
+            TimeSpan gossipAllowedTimeDifference,
+            TimeSpan gossipTimeout,
+            TimeSpan intTcpHeartbeatTimeout,
+            TimeSpan intTcpHeartbeatInterval,
+            TimeSpan extTcpHeartbeatTimeout,
+            TimeSpan extTcpHeartbeatInterval,
+            bool verifyDbHash,
+            int maxMemtableEntryCount,
+            int hashCollisionReadLimit,
+            bool startStandardProjections,
+            bool disableHTTPCaching,
+            bool logHttpRequests,
+            int connectionPendingSendBytesThreshold,
+            int chunkInitialReaderCount,
+            string index = null, bool enableHistograms = false,
+            bool skipIndexVerify = false,
+            int indexCacheDepth = 16,
+            byte indexBitnessVersion = 4,
+            bool optimizeIndexMerge = false,
+            IPersistentSubscriptionConsumerStrategyFactory[] additionalConsumerStrategies = null,
+            bool unsafeIgnoreHardDeletes = false,
+            bool betterOrdering = false,
+            int readerThreadsCount = 4,
+            bool alwaysKeepScavenged = false,
+            bool gossipOnSingleNode = false,
+            bool skipIndexScanOnReads = false,
+            IDispatcherFactory[] dispatcherFactories = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -233,6 +236,8 @@ namespace EventStore.Core.Cluster.Settings
             ReaderThreadsCount = readerThreadsCount;
             AlwaysKeepScavenged = alwaysKeepScavenged;
             SkipIndexScanOnReads = skipIndexScanOnReads;
+
+            DispatcherFactories = dispatcherFactories;
         }
 
 

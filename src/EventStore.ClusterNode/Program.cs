@@ -4,8 +4,6 @@ using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
 using System.Net;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using EventStore.Common.Exceptions;
 using EventStore.Common.Options;
@@ -16,10 +14,8 @@ using EventStore.Core.PluginModel;
 using EventStore.Core.Services.Monitoring;
 using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Util;
-using System.Net.NetworkInformation;
-using EventStore.Core.Data;
-using EventStore.Core.Services.GeoReplica;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
+using EventStore.Plugins.Dispatcher;
 
 namespace EventStore.ClusterNode
 {
@@ -218,8 +214,7 @@ namespace EventStore.ClusterNode
                         .AdvertiseExternalSecureTCPPortAs(options.ExtSecureTcpPortAdvertiseAs)
                         .HavingReaderThreads(options.ReaderThreadsCount)
                         .WithConnectionPendingSendBytesThreshold(options.ConnectionPendingSendBytesThreshold)
-                        .WithChunkInitialReaderCount(options.ChunkInitialReaderCount)
-                        .WithGeoReplicaSettings();
+                        .WithChunkInitialReaderCount(options.ChunkInitialReaderCount);
 
             if(options.GossipSeed.Length > 0)
                 builder.WithGossipSeeds(options.GossipSeed);
@@ -310,27 +305,28 @@ namespace EventStore.ClusterNode
             var authenticationProviderFactory = GetAuthenticationProviderFactory(options.AuthenticationType, authenticationConfig, plugInContainer);
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
             builder.WithAuthenticationProvider(authenticationProviderFactory);
-            builder.WithGeoReplica();
+            var dispatcherFactories = GetDispatcherFactories(plugInContainer);
+            builder.WithDispatchers(dispatcherFactories);
             return builder.Build(options, consumerStrategyFactories);
         }
 
-        private static IGeoReplicaFactory[] GetPlugInGeoReplicaStrategyFactories(CompositionContainer plugInContainer)
+        private static IDispatcherFactory[] GetDispatcherFactories(CompositionContainer plugInContainer)
         {
-            var allPlugins = plugInContainer.GetExports<IGeoReplicaPlugin>();
+            var allPlugins = plugInContainer.GetExports<IDispatcherPlugin>();
 
-            var strategyFactories = new List<IGeoReplicaFactory>();
+            var strategyFactories = new List<IDispatcherFactory>();
 
             foreach (var potentialPlugin in allPlugins)
             {
                 try
                 {
                     var plugin = potentialPlugin.Value;
-                    Log.Info("Loaded GeoReplica strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
+                    Log.Info("Loaded Dispatcher strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
                     strategyFactories.Add(plugin.GetStrategyFactory());
                 }
                 catch (CompositionException ex)
                 {
-                    Log.ErrorException(ex, "Error loading GeoReplica strategy plugin.");
+                    Log.ErrorException(ex, "Error loading Dispatcher strategy plugin.");
                 }
             }
 
@@ -404,6 +400,12 @@ namespace EventStore.ClusterNode
             {
                 Log.Info("Plugins path: {0}", Locations.PluginsDirectory);
                 catalog.Catalogs.Add(new DirectoryCatalog(Locations.PluginsDirectory));
+                // iterate over all directories in .\Plugins dir and add all *Plugin dirs to catalogs
+                foreach (var path in Directory.EnumerateDirectories(Locations.PluginsDirectory, "*Plugin", SearchOption.TopDirectoryOnly))
+                {
+                    Log.Info("Plugin found: {0}", path);
+                    catalog.Catalogs.Add(new DirectoryCatalog(path));
+                }
             }
             else
             {

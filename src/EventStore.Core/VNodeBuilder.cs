@@ -17,8 +17,7 @@ using EventStore.Core.Util;
 using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Data;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
-using EventStore.Core.Index;
-using EventStore.Core.Services.GeoReplica;
+using EventStore.Plugins.Dispatcher;
 
 namespace EventStore.Core
 {
@@ -133,7 +132,7 @@ namespace EventStore.Core
 
         private bool _gossipOnSingleNode;
 
-        protected IGeoReplicaFactory[] _geoReplicaFactories;
+        protected IDispatcherFactory[] _dispatcherFactories;
         // ReSharper restore FieldCanBeMadeReadOnly.Local
 
         protected VNodeBuilder()
@@ -223,11 +222,9 @@ namespace EventStore.Core
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
         }
 
-        public VNodeBuilder WithGeoReplica(IGeoReplicaFactory[] geoReplicaFactories)
+        public VNodeBuilder WithDispatchers(IDispatcherFactory[] dispatcherFactories)
         {
-            // TODO load settings from a setting file (yaml ?)
-            //var settings = new GeoReplicaInfo("origin", "georeplica-position", "GeoPositionUpdated", "ConflictDetected", "eeccf5ce-4f54-409d-8870-b35dd836cca6");
-            _geoReplicaFactories = geoReplicaFactories;
+            _dispatcherFactories = dispatcherFactories;
             return this;
         }
 
@@ -1418,7 +1415,8 @@ namespace EventStore.Core
                     _readerThreadsCount,
                     _alwaysKeepScavenged,
                     _gossipOnSingleNode,
-                    _skipIndexScanOnReads);
+                    _skipIndexScanOnReads,
+                    _dispatcherFactories);
             var infoController = new InfoController(options, _projectionType);
 
             _log.Info("{0,-25} {1}", "INSTANCE ID:", _vNodeSettings.NodeInfo.InstanceId);
