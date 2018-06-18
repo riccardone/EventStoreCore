@@ -50,6 +50,7 @@
     <Compile Include="Config\Destination.cs" />
     <Compile Include="DispatcherFactory.cs" />
     <Compile Include="ConfigFromFile.cs" />
+    <Compile Include="SubscriberPlugin.cs" />
     <Compile Include="Http\ConnectionSettings.cs" />
     <Compile Include="Http\ConnectionSettingsBuilder.cs" />
     <Compile Include="Http\Ensure.cs" />
@@ -63,6 +64,10 @@
     <Compile Include="IConfigProvider.cs" />
     <Compile Include="Config\Origin.cs" />
     <Compile Include="Config\Root.cs" />
+    <Compile Include="IPositionRepository.cs" />
+    <Compile Include="PositionRepository.cs" />
+    <Compile Include="SubscriberService.cs" />
+    <Compile Include="SubscriberServiceFactory.cs" />
     <Compile Include="Tcp\TcpDispatcher.cs" />
     <Compile Include="DispatcherPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

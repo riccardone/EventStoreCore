@@ -43,6 +43,8 @@
     <Compile Include="Dispatcher\IDispatcher.cs" />
     <Compile Include="Dispatcher\IDispatcherFactory.cs" />
     <Compile Include="Dispatcher\IDispatcherPlugin.cs" />
+    <Compile Include="Dispatcher\ISubscriberService.cs" />
+    <Compile Include="Dispatcher\ISubscriberServiceFactory.cs" />
     <Compile Include="IEventStorePlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

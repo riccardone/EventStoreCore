@@ -10,22 +10,21 @@ namespace EventStore.Plugins.EventStoreDispatcher
 {
     public class DispatcherFactory : IDispatcherFactory
     {
-        private readonly IConfigProvider _configProvider;
+        private readonly Root _settings;
 
         public string Name => "EventStore Dispatcher Factory";
 
-        public DispatcherFactory(IConfigProvider configProvider)
+        public DispatcherFactory(Root settings)
         {
-            _configProvider = configProvider;
+            _settings = settings;
         }
 
         public IDictionary<string, IDispatcher> Create()
         {
             var results = new Dictionary<string, IDispatcher>();
-            var settings = _configProvider.GetSettings();
-            foreach (var setting in settings.Destinations)
+            foreach (var setting in _settings.Destinations)
             {
-                var dispatcher = BuildDispatcherToDestination(settings.Origin, setting);
+                var dispatcher = BuildDispatcherToDestination(_settings.Origin, setting);
                 results.Add(setting.Name, dispatcher);
             }
             return results;

@@ -1,7 +1,10 @@
 {
   "origin": {
     "name": "local",
-    "id": "eeccf5ce-4f54-409d-8870-b35dd836cca6"
+    "id": "eeccf5ce-4f54-409d-8870-b35dd836cca6",
+    "username": "admin",
+    "password": "changeit",
+    "port":  1114 
   },
   "destinations": [
     {

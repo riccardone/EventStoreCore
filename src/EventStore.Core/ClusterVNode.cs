@@ -454,10 +454,8 @@ namespace EventStore.Core
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<MonitoringMessage.GetPersistentSubscriptionStats, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<SubscriptionMessage.PersistentSubscriptionTimerTick, Message>());
 
-            var geoReplicaService = new GeoReplicaService(vNodeSettings.DispatcherFactories);
-            _mainBus.Subscribe<SystemMessage.BecomeMaster>(geoReplicaService);
-            _mainBus.Subscribe<StorageMessage.EventCommitted>(geoReplicaService);
-            //_mainBus.Subscribe<SystemMessage.StateChangeMessage>(profilerService);
+            var geoReplicaService = new GeoReplicaService(vNodeSettings.SubscriberFactory);
+            _mainBus.Subscribe(geoReplicaService);
 
             //TODO CC can have multiple threads working on subscription if partition
             var consumerStrategyRegistry = new PersistentSubscriptionConsumerStrategyRegistry(_mainQueue, _mainBus, vNodeSettings.AdditionalConsumerStrategies);

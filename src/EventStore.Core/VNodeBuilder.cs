@@ -131,8 +131,8 @@ namespace EventStore.Core
         protected bool _skipIndexScanOnReads;
 
         private bool _gossipOnSingleNode;
-
-        protected IDispatcherFactory[] _dispatcherFactories;
+        
+        protected ISubscriberServiceFactory _subscriberFactory;
         // ReSharper restore FieldCanBeMadeReadOnly.Local
 
         protected VNodeBuilder()
@@ -222,9 +222,9 @@ namespace EventStore.Core
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
         }
 
-        public VNodeBuilder WithDispatchers(IDispatcherFactory[] dispatcherFactories)
+        public VNodeBuilder WithGeoReplica(ISubscriberServiceFactory subscriberFactory)
         {
-            _dispatcherFactories = dispatcherFactories;
+            _subscriberFactory = subscriberFactory;
             return this;
         }
 
@@ -1416,7 +1416,7 @@ namespace EventStore.Core
                     _alwaysKeepScavenged,
                     _gossipOnSingleNode,
                     _skipIndexScanOnReads,
-                    _dispatcherFactories);
+                    _subscriberFactory);
             var infoController = new InfoController(options, _projectionType);
 
             _log.Info("{0,-25} {1}", "INSTANCE ID:", _vNodeSettings.NodeInfo.InstanceId);

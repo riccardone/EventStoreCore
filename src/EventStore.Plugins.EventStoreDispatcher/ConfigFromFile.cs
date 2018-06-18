@@ -20,7 +20,10 @@ namespace EventStore.Plugins.EventStoreDispatcher
             var destinations = new List<Destination>();
             var jsonFile = File.ReadAllText(_configPath);
             var settingsData = JsonConvert.DeserializeObject<dynamic>(jsonFile);
-            var origin = new Origin(settingsData.origin.name.ToString(), settingsData.origin.id.ToString());
+            var port = 1113;
+            if (settingsData.origin.port != null && !int.TryParse(settingsData.origin.port.ToString(), out port))
+                port = 1113;
+            var origin = new Origin(settingsData.origin.name.ToString(), settingsData.origin.id.ToString(), port, settingsData.origin.username.ToString(), settingsData.origin.password.ToString());
             foreach (var setting in settingsData.destinations)
             {
                 destinations.Add(new Destination(setting.name.ToString(),
