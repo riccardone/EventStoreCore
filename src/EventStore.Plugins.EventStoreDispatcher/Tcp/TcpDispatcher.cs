@@ -9,22 +9,22 @@ namespace EventStore.Plugins.EventStoreDispatcher.Tcp
 {
     public class TcpDispatcher : IDispatcher
     {
-        private readonly IEventStoreConnection _connection;
+        private readonly IEventStoreConnection _connectionToDestination;
         public string Origin { get; }
         public string Destination { get; }
         private bool _disposed;
         private readonly SafeHandle _handle = new SafeFileHandle(IntPtr.Zero, true);
 
-        public TcpDispatcher(string origin, string destination, IEventStoreConnection connection)
+        public TcpDispatcher(string origin, string destination, IEventStoreConnection connectionToDestination)
         {
             Origin = origin;
             Destination = destination;
-            _connection = connection;
+            _connectionToDestination = connectionToDestination;
         }
 
         public async Task DispatchAsynch(long version, dynamic evt, byte[] metadata)
         {
-            await _connection.AppendToStreamAsync(evt.Event.EventStreamId, version,
+            await _connectionToDestination.AppendToStreamAsync(evt.Event.EventStreamId, version,
                 new EventData(evt.Event.EventId, evt.Event.EventType, evt.Event.IsJson, evt.Event.Data,
                     metadata));
         }
@@ -44,7 +44,7 @@ namespace EventStore.Plugins.EventStoreDispatcher.Tcp
             if (disposing)
             {
                 _handle.Dispose();
-                _connection?.Dispose();
+                _connectionToDestination?.Dispose();
             }
             _disposed = true;
         }

@@ -5,7 +5,8 @@ namespace EventStore.Plugins.EventStoreDispatcher
 {
     public interface IPositionRepository
     {
-        Position Get();
+        string PositionEventType { get; }
+        Task<Position> GetAsynch();
         Task SetAsynch(Position? position);
     }
 }

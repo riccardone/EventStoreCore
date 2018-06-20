@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
@@ -10,39 +11,43 @@ namespace EventStore.Plugins.EventStoreDispatcher
     public class PositionRepository : IPositionRepository
     {
         private readonly string _positionStreamName;
-        private readonly string _positionStreamType;
+        public string PositionEventType { get; }
         private readonly IEventStoreConnection _connection;
 
-        public PositionRepository(string positionStreamName, string positionStreamType, IEventStoreConnection connection)
+        public PositionRepository(string positionStreamName, string positionEventType, IEventStoreConnection connection)
         {
             _positionStreamName = positionStreamName;
-            _positionStreamType = positionStreamType;
+            PositionEventType = positionEventType;
             _connection = connection;
         }
 
-        public Position Get()
+        public async Task<Position> GetAsynch()
         {
-            var rawEvt = _connection.ReadEventAsync(_positionStreamName, StreamPosition.End, false).Result;
-            if (rawEvt.Event != null)
-            {
-                var data = Encoding.ASCII.GetString(rawEvt.Event.Value.OriginalEvent.Data);
-                // TODO return the position
-            }
             return Position.Start;
+            // TODO implement this if you want to get last position
+            //var evts = await _connection.ReadStreamEventsBackwardAsync(_positionStreamName, StreamPosition.End, 1, true);
+            //if (evts.Events.Any())
+            //{
+            //    var data = Encoding.ASCII.GetString(evts.Events[0].OriginalEvent.Data);
+            //    // TODO return the position
+            //}
+            //return Position.Start;
         }
 
         public async Task SetAsynch(Position? position)
         {
             if (!position.HasValue)
                 return;
-            var pos = new Dictionary<string, string>
-            {
-                {"CommitPosition", position.Value.CommitPosition.ToString()},
-                {"PreparePosition", position.Value.PreparePosition.ToString()}
-            };
-            var metadata = new Dictionary<string, string> { { "$maxCount", 1.ToString() } };
-            var evt = new EventData(Guid.NewGuid(), _positionStreamType, true, SerializeObject(pos), SerializeObject(metadata));
-            await _connection.AppendToStreamAsync(_positionStreamName, ExpectedVersion.Any, evt);
+            return;
+            // TODO implement this if you want to save the position
+            //var pos = new Dictionary<string, string>
+            //{
+            //    {"CommitPosition", position.Value.CommitPosition.ToString()},
+            //    {"PreparePosition", position.Value.PreparePosition.ToString()}
+            //};
+            //var metadata = new Dictionary<string, string> { { "$maxCount", 1.ToString() } };
+            //var evt = new EventData(Guid.NewGuid(), PositionEventType, true, SerializeObject(pos), SerializeObject(metadata));
+            //await _connection.AppendToStreamAsync(_positionStreamName, ExpectedVersion.Any, evt);
         }
 
         private static byte[] SerializeObject(object obj)

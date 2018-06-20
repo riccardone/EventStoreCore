@@ -18,14 +18,13 @@ namespace EventStore.Plugins.EventStoreDispatcher
 
         public ISubscriberService Create()
         {
-            var connection = EventStoreConnection.Create(
+            var origin = EventStoreConnection.Create(
                 new Uri(
                     $"tcp://{_settings.Origin.User}:{_settings.Origin.Password}@localhost:{_settings.Origin.LocalPort}"),
                 _settings.Origin.ToString());
-            connection.ConnectAsync().Wait();
-            var positionRepo = new PositionRepository("georeplica-position", "GeoPositionUpdated", connection);
-            return new SubscriberService("origin", "georeplica-position", "GeoPositionUpdated", "ConflictDetected", connection,
-                _dispatcherFactory.Create(), positionRepo);
+            origin.ConnectAsync().Wait();
+            var positionRepo = new PositionRepository("georeplica-position", "GeoPositionUpdated", origin);
+            return new SubscriberService(origin, _dispatcherFactory.Create(), positionRepo);
         }
     }
 }

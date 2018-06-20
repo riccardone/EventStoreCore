@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.Exceptions;
 using EventStore.Plugins.Dispatcher;
 using Newtonsoft.Json;
 
@@ -10,84 +11,85 @@ namespace EventStore.Plugins.EventStoreDispatcher
 {
     public class SubscriberService : ISubscriberService
     {
-        private readonly string _originMetadataKey;
-        private readonly string _positionStreamName;
-        private readonly string _positionEventType;
-        private readonly string _conflictDetectedEventType;
-        private readonly IEventStoreConnection _source;
+        private static readonly Serilog.ILogger Log = Serilog.Log.ForContext<SubscriberService>();
         private readonly IDictionary<string, IDispatcher> _dispatchers;
         private readonly IPositionRepository _positionRepository;
+        private readonly IEventStoreConnection _local;
         private Position _lastPosition;
 
-        public SubscriberService(string originMetadataKey, string positionStreamName, string positionEventType, string conflictDetectedEventType, IEventStoreConnection source, IDictionary<string, IDispatcher> dispatchers, IPositionRepository positionRepository)
+        public SubscriberService(IEventStoreConnection local,
+            IDictionary<string, IDispatcher> dispatchers, IPositionRepository positionRepository)
         {
-            _originMetadataKey = originMetadataKey;
-            _positionStreamName = positionStreamName;
-            _positionEventType = positionEventType;
-            _conflictDetectedEventType = conflictDetectedEventType;
-            _source = source;
             _dispatchers = dispatchers;
             _positionRepository = positionRepository;
+            _local = local;
         }
-        
+
         public void Start()
         {
-            _lastPosition = Position.Start; // _positionRepository.Get();
-            // TODO set readBatchSize to 1000
-            _source.SubscribeToAllFrom(_lastPosition, CatchUpSubscriptionSettings.Default, EventAppeared);
+            _lastPosition = _positionRepository.GetAsynch().Result;
+            _local.SubscribeToAllFrom(_lastPosition, CatchUpSubscriptionSettings.Default, EventAppeared);
         }
 
         private async Task EventAppeared(EventStoreCatchUpSubscription eventStoreCatchUpSubscription, ResolvedEvent resolvedEvent)
         {
             // Allow only user events and metadata events
             if (resolvedEvent.Event.EventType.StartsWith("$") && !resolvedEvent.Event.EventType.StartsWith("$$$") ||
-                resolvedEvent.Event.EventType.Equals(_positionEventType) ||
-                resolvedEvent.Event.EventType.Equals(_conflictDetectedEventType))
+                resolvedEvent.Event.EventType.Equals(_positionRepository.PositionEventType))
                 return;
-            try
-            {
-                var metadata = DeserializeObject(resolvedEvent.Event.Metadata) ?? new Dictionary<string, string>();
 
-                // TODO use some degree of parallelism to run the following?
-                foreach (var dispatcher in _dispatchers)
+            var metadata = DeserializeObject(resolvedEvent.Event.Metadata) ?? new Dictionary<string, string>();
+            byte[] metadataAsBytes = null;
+            
+            foreach (var dispatcher in _dispatchers)
+            {
+                try
                 {
                     // We don't want to replicate an event back to its origin
-                    if (metadata.ContainsKey(_originMetadataKey) && metadata[_originMetadataKey].Equals(dispatcher.Value.Destination))
+                    if (metadata.ContainsKey("$origin") && metadata["$origin"].Equals(dispatcher.Value.Destination))
                         continue;
+                    
+                    metadataAsBytes = EnrichMetadata(resolvedEvent, metadata, dispatcher);
 
-                    // Enrich the metadata with the origin
-                    if (metadata.ContainsKey(_originMetadataKey))
-                        metadata[_originMetadataKey] = dispatcher.Value.Origin;
-                    else
-                        metadata.Add(_originMetadataKey, dispatcher.Value.Origin);
-                    var metadataAsBytes = SerializeObject(metadata);
-
-                    try
-                    {
-                        await dispatcher.Value.DispatchAsynch(resolvedEvent.Event.EventNumber - 1, resolvedEvent, metadataAsBytes);
-                        //Log.Info($"Event '{resolvedEvent.Event.EventId}' dispatched to '{dispatcher.Value.Destination}'");
-                        // TODO how we save the replica position from within EventStore? 
-                        //await _positionRepository.SetAsynch(message.Event.EventNumber);
-                    }
-                    catch (Exception ex)
-                    {
-                        //Log.Warn("Exception thrown during replication", ex);
-                        // TODO how we write a new $conflicts... stream from within EventStore?
-                        //await _source.AppendToStreamAsync($"$conflicts-{dispatcher.Origin}-{dispatcher.Destination}", ExpectedVersion.Any,
-                        //    new EventData(Guid.NewGuid(), _conflictDetectedEventType, true, SerializeObject(
-                        //        new Dictionary<string, string>
-                        //        {
-                        //            {"Error", wev.GetBaseException().Message},
-                        //            {"OriginalEvent", Encoding.UTF8.GetString(SerializeObject(resolvedEvent))}
-                        //        }), null));
-                        await dispatcher.Value.DispatchAsynch(-2, resolvedEvent, metadataAsBytes);
-                    }
+                    await dispatcher.Value.DispatchAsynch(resolvedEvent.Event.EventNumber - 1, resolvedEvent, metadataAsBytes);
+                    Log.Information($"Event '{resolvedEvent.Event.EventId}' dispatched to '{dispatcher.Value.Destination}'");
+                }
+                catch (WrongExpectedVersionException ex)
+                {
+                    await HandleConflict(resolvedEvent, dispatcher, ex, metadataAsBytes ?? SerializeObject(metadata));
+                    Log.Warning("WrongExpectedVersionException thrown during replication: {0}", ex);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Error during geo-replication");
                 }
             }
-            catch (Exception e)
-            {
-                //Log.ErrorException(e, "Error during geo-replication");
-            }
+        }
+
+        private static byte[] EnrichMetadata(ResolvedEvent resolvedEvent, IDictionary<string, string> metadata, KeyValuePair<string, IDispatcher> dispatcher)
+        {
+            if (metadata.ContainsKey("$origin"))
+                metadata["$origin"] = dispatcher.Value.Origin;
+            else
+                metadata.Add("$origin", dispatcher.Value.Origin);
+
+            if (!metadata.ContainsKey("$applies"))
+                metadata.Add("$applies", resolvedEvent.Event.Created.ToString("o"));
+
+            if (!metadata.ContainsKey("$originalEventNumber"))
+                metadata.Add("$originalEventNumber", resolvedEvent.OriginalEventNumber.ToString());
+
+            return SerializeObject(metadata);
+        }
+
+        private async Task HandleConflict(ResolvedEvent resolvedEvent, KeyValuePair<string, IDispatcher> dispatcher,
+            WrongExpectedVersionException ex, byte[] metadataAsBytes)
+        {
+            var conflictStreamName = $"$conflicts-{dispatcher.Value.Origin}-{dispatcher.Value.Destination}";
+            await _local.AppendToStreamAsync(conflictStreamName, ExpectedVersion.Any,
+                new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson,
+                    resolvedEvent.Event.Data, metadataAsBytes));
+            await dispatcher.Value.DispatchAsynch(-2, resolvedEvent, metadataAsBytes);
         }
 
         private static IDictionary<string, string> DeserializeObject(byte[] obj)

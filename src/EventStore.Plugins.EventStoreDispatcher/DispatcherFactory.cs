@@ -34,9 +34,11 @@ namespace EventStore.Plugins.EventStoreDispatcher
         {
             if (IsHttp(destination.ConnectionString.ToString()))
                 return new HttpDispatcher(origin.ToString(), $"{destination.Name}-{destination.Id}", EventStoreHttpConnection.Create(Http.ConnectionSettings.Default, destination.ConnectionString));
-            var connection = EventStoreConnection.Create(destination.ConnectionString, destination.ToString());
-            connection.ConnectAsync().Wait();
-            return new TcpDispatcher(origin.ToString(), destination.ToString(), connection);
+
+            var connectionToDestination = EventStoreConnection.Create(destination.ConnectionString, destination.ToString());
+            connectionToDestination.ConnectAsync().Wait();
+
+            return new TcpDispatcher(origin.ToString(), destination.ToString(), connectionToDestination);
         }
 
         private static bool IsHttp(string connectionString)
