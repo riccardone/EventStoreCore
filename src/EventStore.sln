@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Plugins", "Event
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Plugins.EventStoreDispatcher", "EventStore.Plugins.EventStoreDispatcher\EventStore.Plugins.EventStoreDispatcher.csproj", "{015F74A9-6D4E-4F71-8D38-67A107411F0C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Plugins.EventStoreReceiver", "EventStore.Plugins.EventStoreReceiver\EventStore.Plugins.EventStoreReceiver.csproj", "{02127DE0-F0CB-460D-8DEF-E0CD5383622B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{015F74A9-6D4E-4F71-8D38-67A107411F0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{015F74A9-6D4E-4F71-8D38-67A107411F0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{015F74A9-6D4E-4F71-8D38-67A107411F0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02127DE0-F0CB-460D-8DEF-E0CD5383622B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02127DE0-F0CB-460D-8DEF-E0CD5383622B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02127DE0-F0CB-460D-8DEF-E0CD5383622B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02127DE0-F0CB-460D-8DEF-E0CD5383622B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

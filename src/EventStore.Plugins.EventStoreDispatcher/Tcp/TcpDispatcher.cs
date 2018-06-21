@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
@@ -27,6 +28,16 @@ namespace EventStore.Plugins.EventStoreDispatcher.Tcp
             await _connectionToDestination.AppendToStreamAsync(evt.Event.EventStreamId, version,
                 new EventData(evt.Event.EventId, evt.Event.EventType, evt.Event.IsJson, evt.Event.Data,
                     metadata));
+        }
+
+        public async Task BulkAppendAsynch(string stream, dynamic[] eventData)
+        {
+            await _connectionToDestination.AppendToStreamAsync(stream, -2, ToEventData(eventData));
+        }
+
+        private static EventData[] ToEventData(dynamic[] eventData)
+        {
+            return eventData.Cast<EventData>().ToArray();
         }
 
         public void Dispose()

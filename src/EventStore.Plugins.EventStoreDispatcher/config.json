@@ -10,7 +10,8 @@
     {
       "name": "bath",
       "id": "eeccf4ce-4f54-409d-8870-b35dd836cca6",
-      "connectionString": "tcp://admin:changeit@localhost:1113"
+      "connectionString": "tcp://admin:changeit@localhost:1113",
+      "inputStream": "data-ingestion" 
       //"connectionString": "http://admin:changeit@178.62.75.183:2113"
     }
   ]

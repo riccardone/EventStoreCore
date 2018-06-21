@@ -1,0 +1,10 @@
+{
+  "receiver": {
+    "name": "bath",
+    "id": "eeccf4ce-4f54-409d-8870-b35dd836cca6",
+    "username": "admin",
+    "password": "changeit",
+    "port": 1114,
+    "inputStream": "data-ingestion"
+  }
+}

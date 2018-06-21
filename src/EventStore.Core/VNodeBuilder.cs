@@ -132,7 +132,7 @@ namespace EventStore.Core
 
         private bool _gossipOnSingleNode;
         
-        protected ISubscriberServiceFactory _subscriberFactory;
+        protected IDispatcherServiceFactory _subscriberFactory;
         // ReSharper restore FieldCanBeMadeReadOnly.Local
 
         protected VNodeBuilder()
@@ -222,7 +222,7 @@ namespace EventStore.Core
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
         }
 
-        public VNodeBuilder WithGeoReplica(ISubscriberServiceFactory subscriberFactory)
+        public VNodeBuilder WithGeoReplica(IDispatcherServiceFactory subscriberFactory)
         {
             _subscriberFactory = subscriberFactory;
             return this;

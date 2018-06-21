@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using EventStore.Common.Exceptions;
@@ -306,13 +305,12 @@ namespace EventStore.ClusterNode
             var authenticationProviderFactory = GetAuthenticationProviderFactory(options.AuthenticationType, authenticationConfig, plugInContainer);
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
             builder.WithAuthenticationProvider(authenticationProviderFactory);
-            //var dispatcherFactories = GetDispatcherFactories(plugInContainer);
-            var subscriber = GetSubscriberFactory(plugInContainer);
-            builder.WithGeoReplica(subscriber);
+            var dispatcherFactory = GetDispatcherFactory(plugInContainer);
+            builder.WithGeoReplica(dispatcherFactory);
             return builder.Build(options, consumerStrategyFactories);
         }
 
-        private static ISubscriberServiceFactory GetSubscriberFactory(CompositionContainer plugInContainer)
+        private static IDispatcherServiceFactory GetDispatcherFactory(CompositionContainer plugInContainer)
         {
             var allPlugins = plugInContainer.GetExports<IDispatcherPlugin>();
             
@@ -321,12 +319,12 @@ namespace EventStore.ClusterNode
                 try
                 {
                     var plugin = potentialPlugin.Value;
-                    Log.Info("Loaded Subscriber strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
+                    Log.Info("Loaded Dispatcher strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
                     return plugin.GetStrategyFactory();
                 }
                 catch (CompositionException ex)
                 {
-                    Log.ErrorException(ex, "Error loading Subscriber strategy plugin.");
+                    Log.ErrorException(ex, "Error loading Dispatcher strategy plugin.");
                 }
             }
 

@@ -27,7 +27,8 @@ namespace EventStore.Plugins.EventStoreDispatcher
             foreach (var setting in settingsData.destinations)
             {
                 destinations.Add(new Destination(setting.name.ToString(),
-                    setting.id.ToString(), new Uri(setting.connectionString.ToString())));
+                    setting.id.ToString(), new Uri(setting.connectionString.ToString()),
+                    setting.inputStream.ToString()));
             }
             return new Root(origin, destinations);
         }

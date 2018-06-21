@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EventStore.Plugins.Dispatcher
+namespace EventStore.Plugins.EventStoreDispatcher
 {
     public interface IDispatcherFactory
     {

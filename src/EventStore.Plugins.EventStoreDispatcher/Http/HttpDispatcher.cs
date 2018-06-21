@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using EventStore.Plugins.Dispatcher;
 
 namespace EventStore.Plugins.EventStoreDispatcher.Http
@@ -19,6 +20,11 @@ namespace EventStore.Plugins.EventStoreDispatcher.Http
         public async Task DispatchAsynch(long version, dynamic evt, byte[] metadata)
         {
             await _connection.AppendToStreamAsync(version, evt, metadata);
+        }
+
+        public Task BulkAppendAsynch(string stream, dynamic[] eventData)
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()

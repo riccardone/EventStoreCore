@@ -40,13 +40,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dispatcher\IDispatcher.cs" />
-    <Compile Include="Dispatcher\IDispatcherFactory.cs" />
     <Compile Include="Dispatcher\IDispatcherPlugin.cs" />
-    <Compile Include="Dispatcher\ISubscriberService.cs" />
-    <Compile Include="Dispatcher\ISubscriberServiceFactory.cs" />
+    <Compile Include="Dispatcher\IDispatcherService.cs" />
+    <Compile Include="Dispatcher\IDispatcherServiceFactory.cs" />
     <Compile Include="IEventStorePlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Receiver\IReceiverPlugin.cs" />
+    <Compile Include="Receiver\IReceiverServiceFactory.cs" />
+    <Compile Include="Receiver\IReceiverService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

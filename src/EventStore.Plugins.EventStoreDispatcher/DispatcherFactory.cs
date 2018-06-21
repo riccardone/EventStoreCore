@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using EventStore.ClientAPI;
-using EventStore.Plugins.Dispatcher;
 using EventStore.Plugins.EventStoreDispatcher.Config;
 using EventStore.Plugins.EventStoreDispatcher.Http;
 using EventStore.Plugins.EventStoreDispatcher.Tcp;

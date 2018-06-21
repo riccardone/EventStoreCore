@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{015F74A9-6D4E-4F71-8D38-67A107411F0C}</ProjectGuid>
+    <ProjectGuid>{02127DE0-F0CB-460D-8DEF-E0CD5383622B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EventStore.Plugins.EventStoreDispatcher</RootNamespace>
-    <AssemblyName>EventStore.Plugins.EventStoreDispatcher</AssemblyName>
+    <RootNamespace>EventStore.Plugins.EventStoreReceiver</RootNamespace>
+    <AssemblyName>EventStore.Plugins.EventStoreReceiver</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\clusternode\plugins\EventStoreDispatcherPlugin\</OutputPath>
+    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -56,37 +56,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\Destination.cs" />
-    <Compile Include="DispatcherFactory.cs" />
     <Compile Include="ConfigFromFile.cs" />
-    <Compile Include="DispatcherPlugin.cs" />
-    <Compile Include="Http\ConnectionSettings.cs" />
-    <Compile Include="Http\ConnectionSettingsBuilder.cs" />
-    <Compile Include="Http\Ensure.cs" />
-    <Compile Include="Http\EventStoreHttpConnection.cs" />
-    <Compile Include="Http\EventStoreHttpException.cs" />
-    <Compile Include="Http\HttpClientProxy.cs" />
-    <Compile Include="Http\HttpDispatcher.cs" />
-    <Compile Include="Http\IEventStoreHttpConnection.cs" />
-    <Compile Include="Http\IHttpClientProxy.cs" />
-    <Compile Include="Http\UserCredentials.cs" />
-    <Compile Include="IConfigProvider.cs" />
-    <Compile Include="Config\Origin.cs" />
+    <Compile Include="Config\Receiver.cs" />
     <Compile Include="Config\Root.cs" />
-    <Compile Include="IDispatcher.cs" />
-    <Compile Include="IDispatcherFactory.cs" />
-    <Compile Include="IPositionRepository.cs" />
-    <Compile Include="PositionRepository.cs" />
-    <Compile Include="DispatcherServiceService.cs" />
-    <Compile Include="DispatcherServiceFactory.cs" />
-    <Compile Include="Tcp\TcpDispatcher.cs" />
+    <Compile Include="IConfigProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="packages.config" />
+    <Compile Include="ReceiverPlugin.cs" />
+    <Compile Include="ReceiverService.cs" />
+    <Compile Include="ReceiverServiceFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EventStore.Plugins\EventStore.Plugins.csproj">
@@ -94,6 +71,11 @@
       <Name>EventStore.Plugins</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="config.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

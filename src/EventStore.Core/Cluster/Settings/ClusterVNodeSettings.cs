@@ -77,7 +77,7 @@ namespace EventStore.Core.Cluster.Settings
         public readonly bool AlwaysKeepScavenged;
         public readonly bool SkipIndexScanOnReads;
 
-        public readonly ISubscriberServiceFactory SubscriberFactory;
+        public readonly IDispatcherServiceFactory DispatcherServiceFactory;
 
         public readonly bool GossipOnSingleNode;
 
@@ -143,7 +143,7 @@ namespace EventStore.Core.Cluster.Settings
             bool alwaysKeepScavenged = false,
             bool gossipOnSingleNode = false,
             bool skipIndexScanOnReads = false,
-            ISubscriberServiceFactory subscriberFactory = null)
+            IDispatcherServiceFactory subscriberFactory = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -237,7 +237,7 @@ namespace EventStore.Core.Cluster.Settings
             AlwaysKeepScavenged = alwaysKeepScavenged;
             SkipIndexScanOnReads = skipIndexScanOnReads;
             
-            SubscriberFactory = subscriberFactory;
+            DispatcherServiceFactory = subscriberFactory;
         }
 
 

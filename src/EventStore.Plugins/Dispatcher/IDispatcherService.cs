@@ -2,7 +2,7 @@
 
 namespace EventStore.Plugins.Dispatcher
 {
-    public interface ISubscriberService
+    public interface IDispatcherService
     {
         void Start();
     }

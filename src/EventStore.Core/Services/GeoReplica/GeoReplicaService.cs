@@ -6,19 +6,19 @@ namespace EventStore.Core.Services.GeoReplica
 {
     public class GeoReplicaService : IHandle<SystemMessage.StateChangeMessage>
     {
-        private readonly Plugins.Dispatcher.ISubscriberServiceFactory _subscriberFactory;
-        private Plugins.Dispatcher.ISubscriberService _subscriber;
+        private readonly Plugins.Dispatcher.IDispatcherServiceFactory _dispatcherFactory;
+        private Plugins.Dispatcher.IDispatcherService _subscriber;
 
-        public GeoReplicaService(Plugins.Dispatcher.ISubscriberServiceFactory subscriberFactory)
+        public GeoReplicaService(Plugins.Dispatcher.IDispatcherServiceFactory subscriberFactory)
         {
-            _subscriberFactory = subscriberFactory;
+            _dispatcherFactory = subscriberFactory;
         }
 
         public void Handle(SystemMessage.StateChangeMessage message)
         {
             if (message.State != VNodeState.Master && message.State != VNodeState.Clone &&
                 message.State != VNodeState.Slave) return;
-            _subscriber = _subscriberFactory.Create();
+            _subscriber = _dispatcherFactory.Create();
             _subscriber.Start();
         }
     }

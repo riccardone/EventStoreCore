@@ -2,6 +2,6 @@
 {
     public interface IDispatcherPlugin : IEventStorePlugin
     {
-        ISubscriberServiceFactory GetStrategyFactory();
+        IDispatcherServiceFactory GetStrategyFactory();
     }
 }
