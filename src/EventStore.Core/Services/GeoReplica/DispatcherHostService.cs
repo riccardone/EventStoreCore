@@ -4,12 +4,12 @@ using EventStore.Core.Messages;
 
 namespace EventStore.Core.Services.GeoReplica
 {
-    public class GeoReplicaService : IHandle<SystemMessage.StateChangeMessage>
+    public class DispatcherHostService : IHandle<SystemMessage.StateChangeMessage>
     {
         private readonly Plugins.Dispatcher.IDispatcherServiceFactory _dispatcherFactory;
-        private Plugins.Dispatcher.IDispatcherService _subscriber;
+        private Plugins.Dispatcher.IDispatcherService _dispatcherService;
 
-        public GeoReplicaService(Plugins.Dispatcher.IDispatcherServiceFactory subscriberFactory)
+        public DispatcherHostService(Plugins.Dispatcher.IDispatcherServiceFactory subscriberFactory)
         {
             _dispatcherFactory = subscriberFactory;
         }
@@ -18,8 +18,8 @@ namespace EventStore.Core.Services.GeoReplica
         {
             if (message.State != VNodeState.Master && message.State != VNodeState.Clone &&
                 message.State != VNodeState.Slave) return;
-            _subscriber = _dispatcherFactory.Create();
-            _subscriber.Start();
+            _dispatcherService = _dispatcherFactory.Create();
+            _dispatcherService.Start();
         }
     }
 }

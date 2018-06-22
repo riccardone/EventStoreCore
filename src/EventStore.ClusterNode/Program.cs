@@ -16,6 +16,7 @@ using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Util;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 using EventStore.Plugins.Dispatcher;
+using EventStore.Plugins.Receiver;
 
 namespace EventStore.ClusterNode
 {
@@ -306,7 +307,9 @@ namespace EventStore.ClusterNode
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
             builder.WithAuthenticationProvider(authenticationProviderFactory);
             var dispatcherFactory = GetDispatcherFactory(plugInContainer);
-            builder.WithGeoReplica(dispatcherFactory);
+            builder.WithDispatcher(dispatcherFactory);
+            var receiverFactory = GetReceiverFactory(plugInContainer);
+            builder.WithReceiver(receiverFactory);
             return builder.Build(options, consumerStrategyFactories);
         }
 
@@ -331,28 +334,26 @@ namespace EventStore.ClusterNode
             return null;
         }
 
-        //private static IDispatcherFactory[] GetDispatcherFactories(CompositionContainer plugInContainer)
-        //{
-        //    var allPlugins = plugInContainer.GetExports<IDispatcherPlugin>();
+        private static IReceiverServiceFactory GetReceiverFactory(CompositionContainer plugInContainer)
+        {
+            var allPlugins = plugInContainer.GetExports<IReceiverPlugin>();
 
-        //    var strategyFactories = new List<IDispatcherFactory>();
+            foreach (var potentialPlugin in allPlugins)
+            {
+                try
+                {
+                    var plugin = potentialPlugin.Value;
+                    Log.Info("Loaded Receiver strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
+                    return plugin.GetStrategyFactory();
+                }
+                catch (CompositionException ex)
+                {
+                    Log.ErrorException(ex, "Error loading Receiver strategy plugin.");
+                }
+            }
 
-        //    foreach (var potentialPlugin in allPlugins)
-        //    {
-        //        try
-        //        {
-        //            var plugin = potentialPlugin.Value;
-        //            Log.Info("Loaded Dispatcher strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
-        //            strategyFactories.Add(plugin.GetStrategyFactory());
-        //        }
-        //        catch (CompositionException ex)
-        //        {
-        //            Log.ErrorException(ex, "Error loading Dispatcher strategy plugin.");
-        //        }
-        //    }
-
-        //    return strategyFactories.ToArray();
-        //}
+            return null;
+        }
 
         private static IPersistentSubscriptionConsumerStrategyFactory[] GetPlugInConsumerStrategyFactories(CompositionContainer plugInContainer)
         {

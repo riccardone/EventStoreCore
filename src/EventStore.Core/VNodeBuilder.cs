@@ -18,6 +18,7 @@ using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Data;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 using EventStore.Plugins.Dispatcher;
+using EventStore.Plugins.Receiver;
 
 namespace EventStore.Core
 {
@@ -132,7 +133,8 @@ namespace EventStore.Core
 
         private bool _gossipOnSingleNode;
         
-        protected IDispatcherServiceFactory _subscriberFactory;
+        protected IDispatcherServiceFactory _dispatcherServiceFactory;
+        protected IReceiverServiceFactory _receiverServiceFactory;
         // ReSharper restore FieldCanBeMadeReadOnly.Local
 
         protected VNodeBuilder()
@@ -222,9 +224,15 @@ namespace EventStore.Core
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
         }
 
-        public VNodeBuilder WithGeoReplica(IDispatcherServiceFactory subscriberFactory)
+        public VNodeBuilder WithDispatcher(IDispatcherServiceFactory dispatcherServiceFactory)
         {
-            _subscriberFactory = subscriberFactory;
+            _dispatcherServiceFactory = dispatcherServiceFactory;
+            return this;
+        }
+
+        public VNodeBuilder WithReceiver(IReceiverServiceFactory receiverServiceFactory)
+        {
+            _receiverServiceFactory = receiverServiceFactory;
             return this;
         }
 
@@ -1416,7 +1424,8 @@ namespace EventStore.Core
                     _alwaysKeepScavenged,
                     _gossipOnSingleNode,
                     _skipIndexScanOnReads,
-                    _subscriberFactory);
+                    _dispatcherServiceFactory,
+                    _receiverServiceFactory);
             var infoController = new InfoController(options, _projectionType);
 
             _log.Info("{0,-25} {1}", "INSTANCE ID:", _vNodeSettings.NodeInfo.InstanceId);

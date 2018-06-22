@@ -8,6 +8,7 @@ using EventStore.Core.Data;
 using EventStore.Core.Services.Monitoring;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 using EventStore.Plugins.Dispatcher;
+using EventStore.Plugins.Receiver;
 
 namespace EventStore.Core.Cluster.Settings
 {
@@ -78,6 +79,7 @@ namespace EventStore.Core.Cluster.Settings
         public readonly bool SkipIndexScanOnReads;
 
         public readonly IDispatcherServiceFactory DispatcherServiceFactory;
+        public readonly IReceiverServiceFactory ReceiverServiceFactory;
 
         public readonly bool GossipOnSingleNode;
 
@@ -143,7 +145,8 @@ namespace EventStore.Core.Cluster.Settings
             bool alwaysKeepScavenged = false,
             bool gossipOnSingleNode = false,
             bool skipIndexScanOnReads = false,
-            IDispatcherServiceFactory subscriberFactory = null)
+            IDispatcherServiceFactory dispatcherServiceFactory = null,
+            IReceiverServiceFactory receiverServiceFactory = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -237,7 +240,8 @@ namespace EventStore.Core.Cluster.Settings
             AlwaysKeepScavenged = alwaysKeepScavenged;
             SkipIndexScanOnReads = skipIndexScanOnReads;
             
-            DispatcherServiceFactory = subscriberFactory;
+            DispatcherServiceFactory = dispatcherServiceFactory;
+            ReceiverServiceFactory = receiverServiceFactory;
         }
 
 
