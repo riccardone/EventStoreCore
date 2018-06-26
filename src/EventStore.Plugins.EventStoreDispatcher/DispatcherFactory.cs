@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using EventStore.ClientAPI;
 using EventStore.Plugins.EventStoreDispatcher.Config;
 using EventStore.Plugins.EventStoreDispatcher.Http;
@@ -18,15 +17,10 @@ namespace EventStore.Plugins.EventStoreDispatcher
             _settings = settings;
         }
 
-        public IDictionary<string, IDispatcher> Create()
+        public IDispatcher Create(Destination destination)
         {
-            var results = new Dictionary<string, IDispatcher>();
-            foreach (var setting in _settings.Destinations)
-            {
-                var dispatcher = BuildDispatcherToDestination(_settings.Origin, setting);
-                results.Add(setting.Name, dispatcher);
-            }
-            return results;
+            var dispatcher = BuildDispatcherToDestination(_settings.Origin, destination);
+            return dispatcher;
         }
 
         private static IDispatcher BuildDispatcherToDestination(Origin origin, Destination destination)

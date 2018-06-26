@@ -1,7 +1,9 @@
-﻿namespace EventStore.Plugins.Dispatcher
+﻿using System.Collections.Generic;
+
+namespace EventStore.Plugins.Dispatcher
 {
     public interface IDispatcherServiceFactory
     {
-        IDispatcherService Create();
+        IList<IDispatcherService> Create();
     }
 }

@@ -77,7 +77,7 @@
     <Compile Include="IDispatcherFactory.cs" />
     <Compile Include="IPositionRepository.cs" />
     <Compile Include="PositionRepository.cs" />
-    <Compile Include="DispatcherServiceService.cs" />
+    <Compile Include="DispatcherService.cs" />
     <Compile Include="DispatcherServiceFactory.cs" />
     <Compile Include="Tcp\TcpDispatcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

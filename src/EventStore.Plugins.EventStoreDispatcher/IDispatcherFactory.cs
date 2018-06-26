@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using EventStore.Plugins.EventStoreDispatcher.Config;
 
 namespace EventStore.Plugins.EventStoreDispatcher
 {
     public interface IDispatcherFactory
     {
         string Name { get; }
-        IDictionary<string, IDispatcher> Create();
+        IDispatcher Create(Destination destination);
     }
 }

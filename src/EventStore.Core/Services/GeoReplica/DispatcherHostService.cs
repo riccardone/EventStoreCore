@@ -1,13 +1,16 @@
-﻿using EventStore.Core.Bus;
+﻿using System.Collections;
+using System.Collections.Generic;
+using EventStore.Core.Bus;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
+using EventStore.Plugins.Dispatcher;
 
 namespace EventStore.Core.Services.GeoReplica
 {
     public class DispatcherHostService : IHandle<SystemMessage.StateChangeMessage>
     {
-        private readonly Plugins.Dispatcher.IDispatcherServiceFactory _dispatcherFactory;
-        private Plugins.Dispatcher.IDispatcherService _dispatcherService;
+        private readonly IDispatcherServiceFactory _dispatcherFactory;
+        private IList<IDispatcherService> _dispatcherServices;
 
         public DispatcherHostService(Plugins.Dispatcher.IDispatcherServiceFactory subscriberFactory)
         {
@@ -18,8 +21,11 @@ namespace EventStore.Core.Services.GeoReplica
         {
             if (message.State != VNodeState.Master && message.State != VNodeState.Clone &&
                 message.State != VNodeState.Slave) return;
-            _dispatcherService = _dispatcherFactory.Create();
-            _dispatcherService.Start();
+            _dispatcherServices = _dispatcherFactory.Create();
+            foreach (var dispatcherService in _dispatcherServices)
+            {
+                dispatcherService.Start();
+            }
         }
     }
 }
