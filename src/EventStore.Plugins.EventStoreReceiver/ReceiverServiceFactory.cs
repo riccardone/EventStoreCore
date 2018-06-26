@@ -18,6 +18,8 @@ namespace EventStore.Plugins.EventStoreReceiver
 
         public IReceiverService Create()
         {
+            if (_settings == null)
+                return null;
             var origin = EventStoreConnection.Create(
                 new Uri(
                     $"tcp://{_settings.Receiver.User}:{_settings.Receiver.Password}@localhost:{_settings.Receiver.LocalPort}"),

@@ -2,7 +2,7 @@
 {
     public class Receiver
     {
-        public Receiver(string name, string id, int localPort, string user, string password, string inputStream)
+        public Receiver(string name, string id, int localPort, string user, string password, string inputStream, bool appendInCaseOfConflict)
         {
             Name = name;
             Id = id;
@@ -10,6 +10,7 @@
             User = user;
             Password = password;
             InputStream = inputStream;
+            AppendInCaseOfConflict = appendInCaseOfConflict;
         }
 
         public string Name { get; }
@@ -18,6 +19,7 @@
         public string User { get; }
         public string Password { get; }
         public string InputStream { get; }
+        public bool AppendInCaseOfConflict { get; }
 
         public override string ToString()
         {

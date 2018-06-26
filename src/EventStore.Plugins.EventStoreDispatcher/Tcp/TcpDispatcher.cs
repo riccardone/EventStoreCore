@@ -3,13 +3,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using EventStore.Plugins.Dispatcher;
 using Microsoft.Win32.SafeHandles;
 
 namespace EventStore.Plugins.EventStoreDispatcher.Tcp
 {
     public class TcpDispatcher : IDispatcher
     {
+        private static readonly Serilog.ILogger Log = Serilog.Log.ForContext<TcpDispatcher>();
         private readonly IEventStoreConnection _connectionToDestination;
         public string Origin { get; }
         public string Destination { get; }
@@ -23,12 +23,12 @@ namespace EventStore.Plugins.EventStoreDispatcher.Tcp
             _connectionToDestination = connectionToDestination;
         }
 
-        public async Task DispatchAsynch(long version, dynamic evt, byte[] metadata)
-        {
-            await _connectionToDestination.AppendToStreamAsync(evt.Event.EventStreamId, version,
-                new EventData(evt.Event.EventId, evt.Event.EventType, evt.Event.IsJson, evt.Event.Data,
-                    metadata));
-        }
+        //public async Task DispatchAsynch(long version, dynamic evt, byte[] metadata)
+        //{
+        //    await _connectionToDestination.AppendToStreamAsync(evt.Event.EventStreamId, version,
+        //        new EventData(evt.Event.EventId, evt.Event.EventType, evt.Event.IsJson, evt.Event.Data,
+        //            metadata));
+        //}
 
         public async Task BulkAppendAsynch(string stream, dynamic[] eventData)
         {
@@ -55,8 +55,10 @@ namespace EventStore.Plugins.EventStoreDispatcher.Tcp
             if (disposing)
             {
                 _handle.Dispose();
+                _connectionToDestination?.Close();
                 _connectionToDestination?.Dispose();
             }
+
             _disposed = true;
         }
     }

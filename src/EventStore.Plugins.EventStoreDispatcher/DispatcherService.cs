@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Linq;
 using EventStore.ClientAPI;
 using EventStore.Plugins.Dispatcher;
 using Newtonsoft.Json;
@@ -84,15 +85,28 @@ namespace EventStore.Plugins.EventStoreDispatcher
 
         private async Task BulkIt()
         {
-            var batch = new ArrayList();
-            var count = _batchSize <= 0 ? _cache.Count : _cache.Count < _batchSize ? _cache.Count : _batchSize;
-            for (var i = 0; i <= count; i++)
+            try
             {
-                _cache.TryDequeue(out var result);
-                batch.Add(result);
+                var batch = new ArrayList();
+                var count = _batchSize <= 0 ? _cache.Count : _cache.Count < _batchSize ? _cache.Count : _batchSize;
+                for (var i = 0; i <= count; i++)
+                {
+                    if (_cache.TryDequeue(out var result))
+                    {
+                        batch.Add(result);
+                    }
+                }
+
+                if (batch.Count == 0)
+                    return;
+
+                await _dispatcher.BulkAppendAsynch(_ingestionStreamName, batch.ToArray());
+                Log.Information($"Dispatched {batch.Count} Events to {_dispatcher.Destination}/{_ingestionStreamName}");
             }
-            await _dispatcher.BulkAppendAsynch(_ingestionStreamName, batch.ToArray());
-            Log.Information($"Dispatched {batch.Count} Events to {_dispatcher.Destination}/{_ingestionStreamName}");
+            catch (Exception e)
+            {
+                Log.Error(e, $"Log during bulk operation: {e.GetBaseException().Message}");
+            }
         }
 
         private byte[] EnrichMetadata(ResolvedEvent resolvedEvent, IDictionary<string, string> metadata)
@@ -108,11 +122,11 @@ namespace EventStore.Plugins.EventStoreDispatcher
             if (!metadata.ContainsKey("$eventStreamId"))
                 metadata.Add("$eventStreamId", resolvedEvent.Event.EventStreamId);
 
-            if (!metadata.ContainsKey("$position"))
-                metadata.Add("$position", resolvedEvent.OriginalPosition.ToString());
+            //if (!metadata.ContainsKey("$position"))
+            //    metadata.Add("$position", resolvedEvent.OriginalPosition.ToString());
 
-            if (!metadata.ContainsKey("$eventNumber"))
-                metadata.Add("$eventNumber", resolvedEvent.Event.EventNumber.ToString());
+            //if (!metadata.ContainsKey("$eventNumber"))
+            //    metadata.Add("$eventNumber", resolvedEvent.Event.EventNumber.ToString());
 
             if (!metadata.ContainsKey("$expectedVersion"))
                 metadata.Add("$expectedVersion", (resolvedEvent.Event.EventNumber - 1).ToString());

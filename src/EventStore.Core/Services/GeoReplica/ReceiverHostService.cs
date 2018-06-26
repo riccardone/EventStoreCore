@@ -1,4 +1,7 @@
-﻿using EventStore.Core.Bus;
+﻿using System;
+using System.Threading;
+using EventStore.Common.Log;
+using EventStore.Core.Bus;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
 
@@ -6,6 +9,7 @@ namespace EventStore.Core.Services.GeoReplica
 {
     public class ReceiverHostService : IHandle<SystemMessage.StateChangeMessage>
     {
+        private static readonly ILogger Log = LogManager.GetLoggerFor<ReceiverHostService>();
         private readonly Plugins.Receiver.IReceiverServiceFactory _receiverServiceFactory;
         private Plugins.Receiver.IReceiverService _receiverService;
 
@@ -18,8 +22,23 @@ namespace EventStore.Core.Services.GeoReplica
         {
             if (message.State != VNodeState.Master && message.State != VNodeState.Clone &&
                 message.State != VNodeState.Slave) return;
+            try
+            {
+                var t = new Thread(StartService) { IsBackground = true };
+                t.Start();
+            }
+            catch (Exception e)
+            {
+                Log.ErrorException(e, "Error on ReceiverHostService");
+            }
+        }
+
+        private void StartService()
+        {
+            if (_receiverServiceFactory == null)
+                return;
             _receiverService = _receiverServiceFactory.Create();
-            _receiverService.Start();
+            _receiverService?.Start();
         }
     }
 }

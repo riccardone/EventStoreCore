@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using EventStore.ClientAPI;
 using EventStore.Plugins.Dispatcher;
 
 namespace EventStore.Plugins.EventStoreDispatcher.Http
@@ -24,7 +26,13 @@ namespace EventStore.Plugins.EventStoreDispatcher.Http
 
         public Task BulkAppendAsynch(string stream, dynamic[] eventData)
         {
+            // TODO implement append with batches (and remove the dispatch with only 1 event)
             throw new NotImplementedException();
+        }
+
+        private static EventData[] ToEventData(dynamic[] eventData)
+        {
+            return eventData.Cast<EventData>().ToArray();
         }
 
         public void Dispose()

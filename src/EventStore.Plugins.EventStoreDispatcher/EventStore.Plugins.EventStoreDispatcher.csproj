@@ -57,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config\Destination.cs" />
-    <Compile Include="DispatcherFactory.cs" />
     <Compile Include="ConfigFromFile.cs" />
     <Compile Include="DispatcherPlugin.cs" />
     <Compile Include="Http\ConnectionSettings.cs" />
@@ -74,7 +73,6 @@
     <Compile Include="Config\Origin.cs" />
     <Compile Include="Config\Root.cs" />
     <Compile Include="IDispatcher.cs" />
-    <Compile Include="IDispatcherFactory.cs" />
     <Compile Include="IPositionRepository.cs" />
     <Compile Include="PositionRepository.cs" />
     <Compile Include="DispatcherService.cs" />
@@ -83,9 +81,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="config.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="config.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

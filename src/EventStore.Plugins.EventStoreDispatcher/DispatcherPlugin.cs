@@ -21,7 +21,7 @@ namespace EventStore.Plugins.EventStoreDispatcher
         {
             var root = new ConfigFromFile(Path.Combine(Environment.CurrentDirectory, "plugins",
                 "EventStoreDispatcherPlugin", "config.json")).GetSettings();
-            return new DispatcherServiceFactory(root, new DispatcherFactory(root));
+            return new DispatcherServiceFactory(root);
         }
 
         private static void ConfigureLogging()
