@@ -2,10 +2,10 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
-using System.Linq;
 using EventStore.ClientAPI;
 using EventStore.Plugins.Dispatcher;
 using Newtonsoft.Json;
@@ -58,16 +58,20 @@ namespace EventStore.Plugins.EventStoreDispatcher
                 resolvedEvent.Event.EventType.Equals(_positionRepository.PositionEventType))
                 return Task.CompletedTask;
 
-            var metadata = DeserializeObject(resolvedEvent.Event.Metadata) ?? new Dictionary<string, string>();
+            var metadata = DeserializeObject(resolvedEvent.Event.Metadata) ?? new Dictionary<string, dynamic>();
 
             if (metadata.ContainsKey("$local"))
                 return Task.CompletedTask;
 
             try
             {
-                // We don't want to replicate an event back to its origin
-                if (metadata.ContainsKey("$origin") && metadata["$origin"].Equals(_dispatcher.Destination))
-                    return Task.CompletedTask;
+                // We don't want to replicate an event back to any of its origins
+                if (metadata.ContainsKey("$origin"))
+                {
+                    string[] origins = metadata["$origin"].Split(',');
+                    if (origins.Any(origin => origin.Equals(_dispatcher.Destination)))
+                        return Task.CompletedTask;
+                } 
 
                 var metadataAsBytes = EnrichMetadata(resolvedEvent, metadata);
 
@@ -105,14 +109,16 @@ namespace EventStore.Plugins.EventStoreDispatcher
             }
             catch (Exception e)
             {
-                Log.Error(e, $"Log during bulk operation: {e.GetBaseException().Message}");
+                Log.Error($"Error from destination: '{_dispatcher.Destination}'");
+                Log.Error(e, e.GetBaseException().Message);
             }
         }
 
-        private byte[] EnrichMetadata(ResolvedEvent resolvedEvent, IDictionary<string, string> metadata)
+        private byte[] EnrichMetadata(ResolvedEvent resolvedEvent, IDictionary<string, dynamic> metadata)
         {
             if (metadata.ContainsKey("$origin"))
-                metadata["$origin"] = _dispatcher.Origin;
+                // This node is part of a replica chain and therefore we don't want to forget the previous origins
+                metadata["$origin"] = $"{metadata["$origin"]},{_dispatcher.Origin}";
             else
                 metadata.Add("$origin", _dispatcher.Origin);
 
@@ -122,21 +128,15 @@ namespace EventStore.Plugins.EventStoreDispatcher
             if (!metadata.ContainsKey("$eventStreamId"))
                 metadata.Add("$eventStreamId", resolvedEvent.Event.EventStreamId);
 
-            //if (!metadata.ContainsKey("$position"))
-            //    metadata.Add("$position", resolvedEvent.OriginalPosition.ToString());
-
-            //if (!metadata.ContainsKey("$eventNumber"))
-            //    metadata.Add("$eventNumber", resolvedEvent.Event.EventNumber.ToString());
-
-            if (!metadata.ContainsKey("$expectedVersion"))
-                metadata.Add("$expectedVersion", (resolvedEvent.Event.EventNumber - 1).ToString());
+            if (!metadata.ContainsKey("$eventNumber"))
+                metadata.Add("$eventNumber", resolvedEvent.Event.EventNumber);
 
             return SerializeObject(metadata);
         }
 
-        private static IDictionary<string, string> DeserializeObject(byte[] obj)
+        private static IDictionary<string, dynamic> DeserializeObject(byte[] obj)
         {
-            return JsonConvert.DeserializeObject<Dictionary<string, string>>(
+            return JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(
                 Encoding.UTF8.GetString(obj));
         }
 

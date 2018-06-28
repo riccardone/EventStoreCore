@@ -26,7 +26,7 @@ namespace EventStore.Core.Services.GeoReplica
                 message.State != VNodeState.Slave) return;
             try
             {
-                var t = new Thread(StartService) { IsBackground = true };
+                var t = new Thread(Start) { IsBackground = true };
                 t.Start();
             }
             catch (Exception e)
@@ -35,8 +35,9 @@ namespace EventStore.Core.Services.GeoReplica
             }
         }
 
-        private void StartService()
+        private void Start()
         {
+            Thread.Sleep(10000);
             if (_dispatcherFactory == null)
                 return;
             _dispatcherServices = _dispatcherFactory.Create();

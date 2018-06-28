@@ -30,14 +30,20 @@ namespace EventStore.Plugins.EventStoreReceiver
 
         private void Subscribe(long? checkPoint)
         {
-            _local.SubscribeToStreamFrom(_settings.Receiver.InputStream, checkPoint, CatchUpSubscriptionSettings.Default, EventAppeared, LiveProcessingStarted, SubscriptionDropped);
+            long? lastCheckPoint = null;
+            if (checkPoint.HasValue)
+                lastCheckPoint = checkPoint;
+            _local.SubscribeToStreamFrom(_settings.Receiver.InputStream, lastCheckPoint ?? StreamCheckpoint.StreamStart,
+                CatchUpSubscriptionSettings.Default, EventAppeared, LiveProcessingStarted, SubscriptionDropped);
         }
 
         private void SubscriptionDropped(EventStoreCatchUpSubscription arg1, SubscriptionDropReason arg2, Exception arg3)
         {
-            Log.Warning(arg3, $"ReceiverService SubscriptionDropped {arg3.GetBaseException().Message}");
+            Log.Warning($"ReceiverService SubscriptionDropped. SubscriptionDropReason: '{arg2.ToString()}'");
+            if (arg3 != null)
+                Log.Warning(arg3, $"Error: {arg3.GetBaseException().Message}");
             Log.Warning("ReceiverService Resubscribing...");
-            Subscribe(_lastCheckpoint ?? StreamCheckpoint.StreamStart);
+            Subscribe(_lastCheckpoint);
         }
 
         private void LiveProcessingStarted(EventStoreCatchUpSubscription obj)
@@ -55,15 +61,35 @@ namespace EventStore.Plugins.EventStoreReceiver
 
             try
             {
-                await _local.AppendToStreamAsync(metadata["$eventStreamId"], int.Parse(metadata["$expectedVersion"]),
-                    new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson,
-                        resolvedEvent.Event.Data, resolvedEvent.Event.Metadata));
+                // TODO review why the Expected Version error. It's wrong most of the time (it's 1 more than the current)
+                long eventNumber = metadata["$eventNumber"];
+                if (eventNumber == 0)
+                    eventNumber = -1;
+
+                await _local.AppendToStreamAsync(metadata["$eventStreamId"], eventNumber,
+                    new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType,
+                        resolvedEvent.Event.IsJson, resolvedEvent.Event.Data, resolvedEvent.Event.Metadata));
+                
                 _lastCheckpoint = resolvedEvent.OriginalEventNumber;
             }
             catch (WrongExpectedVersionException ex)
             {
-                Log.Warning("WrongExpectedVersionException thrown during ingestion of replicated events: {0}", ex);
-                metadata.Add("$error", ex.GetBaseException().Message);
+                await HandleConflict(resolvedEvent, ex, metadata);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Error during geo-replication ingestion");
+            }
+        }
+
+        private async Task HandleConflict(ResolvedEvent resolvedEvent, WrongExpectedVersionException ex, IDictionary<string, dynamic> metadata)
+        {
+            try
+            {
+                if (metadata.ContainsKey("$errors"))
+                    metadata["$errors"] = $"{metadata["$errors"]},{_settings.Receiver}:{ex.GetBaseException().Message}";
+                else
+                    metadata.Add("$errors", $"{_settings.Receiver}:{ex.GetBaseException().Message}");
                 if (_settings.Receiver.AppendInCaseOfConflict)
                 {
                     await _local.AppendToStreamAsync(metadata["$eventStreamId"], ExpectedVersion.Any,
@@ -72,34 +98,24 @@ namespace EventStore.Plugins.EventStoreReceiver
                 }
                 else
                 {
+                    Log.Warning($"WrongExpectedVersionException while ingesting replicated events");
+                    Log.Warning(ex.GetBaseException().Message);
                     var conflictStreamName = $"$conflicts-{metadata["$origin"]}-{_settings.Receiver}";
-                    await HandleConflict(conflictStreamName, resolvedEvent, ex, metadata, SerializeObject(metadata));
+                    await _local.AppendToStreamAsync(conflictStreamName, ExpectedVersion.Any,
+                        new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson,
+                            resolvedEvent.Event.Data, SerializeObject(metadata)));
                     Log.Warning($"Published conflict to '{conflictStreamName}' stream");
                 }
             }
             catch (Exception e)
             {
-                Log.Error(e, "Error during geo-replication ingestion");
+                Log.Error(e, "Error during HandleConflict");
             }
         }
 
-        private async Task HandleConflict(string conflictStream, ResolvedEvent resolvedEvent, WrongExpectedVersionException ex, IDictionary<string, string> metadata, byte[] metadataAsBytes)
+        private static IDictionary<string, dynamic> DeserializeObject(byte[] obj)
         {
-            try
-            {
-                await _local.AppendToStreamAsync(conflictStream, ExpectedVersion.Any,
-                    new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson,
-                        resolvedEvent.Event.Data, metadataAsBytes));
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "HandleConflict error");
-            }
-        }
-
-        private static IDictionary<string, string> DeserializeObject(byte[] obj)
-        {
-            return JsonConvert.DeserializeObject<Dictionary<string, string>>(
+            return JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(
                 Encoding.UTF8.GetString(obj));
         }
 
