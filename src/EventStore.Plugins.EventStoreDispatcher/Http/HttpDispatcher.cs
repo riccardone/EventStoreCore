@@ -19,12 +19,7 @@ namespace EventStore.Plugins.EventStoreDispatcher.Http
             _connection = connection;
         }
 
-        public async Task DispatchAsynch(long version, dynamic evt, byte[] metadata)
-        {
-            await _connection.AppendToStreamAsync(version, evt, metadata);
-        }
-
-        public Task BulkAppendAsynch(string stream, dynamic[] eventData)
+        public Task AppendAsynch(string stream, dynamic[] eventData)
         {
             // TODO implement append with batches (and remove the dispatch with only 1 event)
             throw new NotImplementedException();

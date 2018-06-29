@@ -12,6 +12,18 @@ using Newtonsoft.Json;
 
 namespace EventStore.Plugins.EventStoreDispatcher
 {
+    public class CachedEvent
+    {
+        public Position Position { get; }
+        public EventData EventData { get; }
+
+        public CachedEvent(Position position, EventData eventData)
+        {
+            Position = position;
+            EventData = eventData;
+        }
+    }
+
     public class DispatcherService : IDispatcherService
     {
         private static readonly Serilog.ILogger Log = Serilog.Log.ForContext<DispatcherService>();
@@ -22,7 +34,7 @@ namespace EventStore.Plugins.EventStoreDispatcher
         private readonly int _interval;
         private readonly int _batchSize;
         private Position _lastPosition;
-        private readonly ConcurrentQueue<EventData> _cache = new ConcurrentQueue<EventData>();
+        private readonly ConcurrentQueue<CachedEvent> _cache = new ConcurrentQueue<CachedEvent>();
         private static Timer _timer;
 
         public DispatcherService(IEventStoreConnection local, string ingestionStreamName, int interval, int batchSize,
@@ -55,14 +67,14 @@ namespace EventStore.Plugins.EventStoreDispatcher
         {
             // Allow only user events and metadata events
             if (resolvedEvent.Event.EventType.StartsWith("$") && !resolvedEvent.Event.EventType.StartsWith("$$$") ||
-                resolvedEvent.Event.EventType.Equals(_positionRepository.PositionEventType))
+                resolvedEvent.Event.EventType.Equals(_positionRepository.PositionEventType) || !resolvedEvent.OriginalPosition.HasValue)
                 return Task.CompletedTask;
 
             var metadata = DeserializeObject(resolvedEvent.Event.Metadata) ?? new Dictionary<string, dynamic>();
 
             if (metadata.ContainsKey("$local"))
                 return Task.CompletedTask;
-
+            
             try
             {
                 // We don't want to replicate an event back to any of its origins
@@ -75,9 +87,9 @@ namespace EventStore.Plugins.EventStoreDispatcher
 
                 var metadataAsBytes = EnrichMetadata(resolvedEvent, metadata);
 
-                _cache.Enqueue(new EventData(resolvedEvent.Event.EventId,
+                _cache.Enqueue(new CachedEvent(resolvedEvent.OriginalPosition.Value, new EventData(resolvedEvent.Event.EventId,
                     resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson, resolvedEvent.Event.Data,
-                    metadataAsBytes));
+                    metadataAsBytes)));
             }
             catch (Exception e)
             {
@@ -91,20 +103,24 @@ namespace EventStore.Plugins.EventStoreDispatcher
         {
             try
             {
-                var batch = new ArrayList();
+                if (_cache.IsEmpty)
+                    return;
+                var batch = new List<CachedEvent>();
                 var count = _batchSize <= 0 ? _cache.Count : _cache.Count < _batchSize ? _cache.Count : _batchSize;
                 for (var i = 0; i <= count; i++)
                 {
-                    if (_cache.TryDequeue(out var result))
-                    {
-                        batch.Add(result);
-                    }
+                    if (!_cache.TryDequeue(out var result))
+                        continue;
+                    batch.Add(result);
                 }
 
                 if (batch.Count == 0)
                     return;
-
-                await _dispatcher.BulkAppendAsynch(_ingestionStreamName, batch.ToArray());
+                dynamic[] eventDatas = batch.Select(a => a.EventData).ToArray();
+                await _dispatcher.AppendAsynch(_ingestionStreamName, eventDatas);
+                var lastPosition = batch.Last().Position;
+                await _positionRepository.SetAsynch(lastPosition);
+                _lastPosition = lastPosition;
                 Log.Information($"Dispatched {batch.Count} Events to {_dispatcher.Destination}/{_ingestionStreamName}");
             }
             catch (Exception e)

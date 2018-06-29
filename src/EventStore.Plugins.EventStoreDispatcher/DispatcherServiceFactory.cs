@@ -33,7 +33,7 @@ namespace EventStore.Plugins.EventStoreDispatcher
                 Log.Information($"Connected to '{destination}'");
                 dispatchers.Add(new DispatcherService(origin, destination.InputStream, destination.Interval,
                     destination.BatchSize, BuildDispatcherForDestination(_settings.Origin, destination),
-                    new PositionRepository("georeplica-position", "GeoPositionUpdated", origin)));
+                    new PositionRepository($"georeplica-position-{destination}", "GeoPositionUpdated", origin)));
             }
             return dispatchers;
         }

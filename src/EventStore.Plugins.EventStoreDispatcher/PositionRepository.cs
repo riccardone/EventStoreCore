@@ -19,35 +19,27 @@ namespace EventStore.Plugins.EventStoreDispatcher
             _positionStreamName = positionStreamName;
             PositionEventType = positionEventType;
             _connection = connection;
+            InitStream();
+        }
+
+        private async Task InitStream()
+        {
+            var metadata = new Dictionary<string, int> { { "$maxCount", 1 } };
+            await _connection.SetStreamMetadataAsync(_positionStreamName, ExpectedVersion.Any, SerializeObject(metadata));
         }
 
         public async Task<Position> GetAsynch()
         {
+            var evts = await _connection.ReadStreamEventsBackwardAsync(_positionStreamName, StreamPosition.End, 1, true);
+            if (evts.Events.Any())
+                return DeserializeObject<Position>(evts.Events[0].OriginalEvent.Data);
             return Position.Start;
-            // TODO implement this if you want to get last position
-            //var evts = await _connection.ReadStreamEventsBackwardAsync(_positionStreamName, StreamPosition.End, 1, true);
-            //if (evts.Events.Any())
-            //{
-            //    var data = Encoding.ASCII.GetString(evts.Events[0].OriginalEvent.Data);
-            //    // TODO return the position
-            //}
-            //return Position.Start;
         }
 
-        public async Task SetAsynch(Position? position)
+        public async Task SetAsynch(Position position)
         {
-            if (!position.HasValue)
-                return;
-            return;
-            // TODO implement this if you want to save the position
-            //var pos = new Dictionary<string, string>
-            //{
-            //    {"CommitPosition", position.Value.CommitPosition.ToString()},
-            //    {"PreparePosition", position.Value.PreparePosition.ToString()}
-            //};
-            //var metadata = new Dictionary<string, string> { { "$maxCount", 1.ToString() } };
-            //var evt = new EventData(Guid.NewGuid(), PositionEventType, true, SerializeObject(pos), SerializeObject(metadata));
-            //await _connection.AppendToStreamAsync(_positionStreamName, ExpectedVersion.Any, evt);
+            var evt = new EventData(Guid.NewGuid(), PositionEventType, true, SerializeObject(position), null);
+            await _connection.AppendToStreamAsync(_positionStreamName, ExpectedVersion.Any, evt);
         }
 
         private static byte[] SerializeObject(object obj)
@@ -55,6 +47,11 @@ namespace EventStore.Plugins.EventStoreDispatcher
             var jsonObj = JsonConvert.SerializeObject(obj);
             var data = Encoding.UTF8.GetBytes(jsonObj);
             return data;
+        }
+
+        private static T DeserializeObject<T>(byte[] data)
+        {
+            return JsonConvert.DeserializeObject<T>(Encoding.ASCII.GetString(data));
         }
     }
 }

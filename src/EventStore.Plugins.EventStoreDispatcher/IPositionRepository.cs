@@ -7,6 +7,6 @@ namespace EventStore.Plugins.EventStoreDispatcher
     {
         string PositionEventType { get; }
         Task<Position> GetAsynch();
-        Task SetAsynch(Position? position);
+        Task SetAsynch(Position position);
     }
 }

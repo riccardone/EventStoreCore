@@ -23,14 +23,7 @@ namespace EventStore.Plugins.EventStoreDispatcher.Tcp
             _connectionToDestination = connectionToDestination;
         }
 
-        //public async Task DispatchAsynch(long version, dynamic evt, byte[] metadata)
-        //{
-        //    await _connectionToDestination.AppendToStreamAsync(evt.Event.EventStreamId, version,
-        //        new EventData(evt.Event.EventId, evt.Event.EventType, evt.Event.IsJson, evt.Event.Data,
-        //            metadata));
-        //}
-
-        public async Task BulkAppendAsynch(string stream, dynamic[] eventData)
+        public async Task AppendAsynch(string stream, dynamic[] eventData)
         {
             await _connectionToDestination.AppendToStreamAsync(stream, -2, ToEventData(eventData));
         }
