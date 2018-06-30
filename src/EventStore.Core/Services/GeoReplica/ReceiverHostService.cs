@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using EventStore.Common.Log;
 using EventStore.Core.Bus;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
+using EventStore.Plugins.Receiver;
 
 namespace EventStore.Core.Services.GeoReplica
 {
@@ -11,9 +13,9 @@ namespace EventStore.Core.Services.GeoReplica
     {
         private static readonly ILogger Log = LogManager.GetLoggerFor<ReceiverHostService>();
         private readonly Plugins.Receiver.IReceiverServiceFactory _receiverServiceFactory;
-        private Plugins.Receiver.IReceiverService _receiverService;
+        private IList<IReceiverService> _receiverServices;
 
-        public ReceiverHostService(Plugins.Receiver.IReceiverServiceFactory receiverServiceFactory)
+        public ReceiverHostService(IReceiverServiceFactory receiverServiceFactory)
         {
             _receiverServiceFactory = receiverServiceFactory;
         }
@@ -38,8 +40,11 @@ namespace EventStore.Core.Services.GeoReplica
             Thread.Sleep(10000);
             if (_receiverServiceFactory == null)
                 return;
-            _receiverService = _receiverServiceFactory.Create();
-            _receiverService?.Start();
+            _receiverServices = _receiverServiceFactory.Create();
+            foreach (var receiverService in _receiverServices)
+            {
+                receiverService.Start();
+            }
         }
     }
 }

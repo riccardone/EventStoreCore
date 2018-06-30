@@ -1,8 +1,10 @@
-﻿namespace EventStore.Plugins.Receiver
+﻿using System.Collections.Generic;
+
+namespace EventStore.Plugins.Receiver
 {
     public interface IReceiverServiceFactory
     {
         string Name { get; }
-        IReceiverService Create();
+        IList<IReceiverService> Create();
     }
 }

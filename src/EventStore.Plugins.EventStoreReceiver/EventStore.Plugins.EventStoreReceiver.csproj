@@ -57,9 +57,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigFromFile.cs" />
+    <Compile Include="Config\Local.cs" />
     <Compile Include="Config\Receiver.cs" />
     <Compile Include="Config\Root.cs" />
     <Compile Include="IConfigProvider.cs" />
+    <Compile Include="ICheckpointRepository.cs" />
+    <Compile Include="CheckpointRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReceiverPlugin.cs" />
     <Compile Include="ReceiverService.cs" />

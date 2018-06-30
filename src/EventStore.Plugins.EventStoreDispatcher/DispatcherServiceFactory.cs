@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using EventStore.Plugins.Dispatcher;
 using EventStore.Plugins.EventStoreDispatcher.Config;
@@ -32,19 +33,19 @@ namespace EventStore.Plugins.EventStoreDispatcher
                 origin.ConnectAsync().Wait();
                 Log.Information($"Connected to '{destination}'");
                 dispatchers.Add(new DispatcherService(origin, destination.InputStream, destination.Interval,
-                    destination.BatchSize, BuildDispatcherForDestination(_settings.Origin, destination),
+                    destination.BatchSize, BuildDispatcherForDestination(_settings.Origin, destination).Result,
                     new PositionRepository($"georeplica-position-{destination}", "GeoPositionUpdated", origin)));
             }
             return dispatchers;
         }
 
-        private static IDispatcher BuildDispatcherForDestination(Origin origin, Destination destination)
+        private static async Task<IDispatcher> BuildDispatcherForDestination(Origin origin, Destination destination)
         {
             if (IsHttp(destination.ConnectionString.ToString()))
                 return new HttpDispatcher(origin.ToString(), $"{destination.Name}-{destination.Id}", EventStoreHttpConnection.Create(Http.ConnectionSettings.Default, destination.ConnectionString));
 
             var connectionToDestination = EventStoreConnection.Create(destination.ConnectionString, origin.ToString());
-            connectionToDestination.ConnectAsync().Wait();
+            await connectionToDestination.ConnectAsync();
             return new TcpDispatcher(origin.ToString(), destination.ToString(), connectionToDestination);
         }
 

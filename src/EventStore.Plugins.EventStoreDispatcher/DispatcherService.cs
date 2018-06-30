@@ -123,10 +123,14 @@ namespace EventStore.Plugins.EventStoreDispatcher
                 _lastPosition = lastPosition;
                 Log.Information($"Dispatched {batch.Count} Events to {_dispatcher.Destination}/{_ingestionStreamName}");
             }
+            catch (ObjectDisposedException)
+            {
+                Log.Error($"I can't connect to: '{_dispatcher.Destination}'");
+            }
             catch (Exception e)
             {
                 Log.Error($"Error from destination: '{_dispatcher.Destination}'");
-                Log.Error(e, e.GetBaseException().Message);
+                Log.Error(e.GetBaseException().Message);
             }
         }
 

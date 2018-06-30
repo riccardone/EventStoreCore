@@ -1,12 +1,16 @@
-﻿namespace EventStore.Plugins.EventStoreReceiver.Config
+﻿using System.Collections.Generic;
+
+namespace EventStore.Plugins.EventStoreReceiver.Config
 {
     public class Root
     {
-        public Root(Receiver origin)
+        public Root(Local local, List<Receiver> receivers)
         {
-            Receiver = origin;
+            Local = local;
+            Receivers = receivers;
         }
 
-        public Receiver Receiver { get; }
+        public Local Local { get; }
+        public List<Receiver> Receivers { get; }
     }
 }

@@ -20,7 +20,6 @@ namespace EventStore.Plugins.EventStoreDispatcher
         {
             try
             {
-                var destinations = new List<Destination>();
                 var jsonFile = File.ReadAllText(_configPath);
                 var settingsData = JsonConvert.DeserializeObject<dynamic>(jsonFile);
                 if (settingsData == null || settingsData.destinations == null || settingsData.destinations.Count == 0)
@@ -30,6 +29,7 @@ namespace EventStore.Plugins.EventStoreDispatcher
                     port = 1113;
                 var origin = new Origin(settingsData.origin.name.ToString(), settingsData.origin.id.ToString(), port,
                     settingsData.origin.username.ToString(), settingsData.origin.password.ToString());
+                var destinations = new List<Destination>();
                 foreach (var setting in settingsData.destinations)
                 {
                     destinations.Add(new Destination(setting.name.ToString(),
@@ -39,9 +39,9 @@ namespace EventStore.Plugins.EventStoreDispatcher
                 }
                 return new Root(origin, destinations);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
-                Log.Information("EventStoreDispatcher Configuration file not found");
+                //Log.Information("EventStoreDispatcher Configuration file not found");
             }
             catch (Exception ex)
             {

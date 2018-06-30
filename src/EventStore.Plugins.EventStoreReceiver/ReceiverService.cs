@@ -4,7 +4,6 @@ using System.Text;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Exceptions;
-using EventStore.Plugins.EventStoreReceiver.Config;
 using EventStore.Plugins.Receiver;
 using Newtonsoft.Json;
 
@@ -13,19 +12,20 @@ namespace EventStore.Plugins.EventStoreReceiver
     public class ReceiverService : IReceiverService
     {
         private static readonly Serilog.ILogger Log = Serilog.Log.ForContext<ReceiverService>();
-        private readonly Root _settings;
+        private readonly Config.Receiver _receiver;
         private readonly IEventStoreConnection _local;
-        private long? _lastCheckpoint;
+        private readonly ICheckpointRepository _checkpointRepository;
 
-        public ReceiverService(Root settings, IEventStoreConnection local)
+        public ReceiverService(Config.Receiver receiver, IEventStoreConnection local, ICheckpointRepository checkpointRepository)
         {
-            _settings = settings;
+            _receiver = receiver;
             _local = local;
+            _checkpointRepository = checkpointRepository;
         }
 
         public void Start()
         {
-            Subscribe(_lastCheckpoint ?? StreamCheckpoint.StreamStart);
+            Subscribe(_checkpointRepository.GetAsynch().Result);
         }
 
         private void Subscribe(long? checkPoint)
@@ -33,7 +33,7 @@ namespace EventStore.Plugins.EventStoreReceiver
             long? lastCheckPoint = null;
             if (checkPoint.HasValue)
                 lastCheckPoint = checkPoint;
-            _local.SubscribeToStreamFrom(_settings.Receiver.InputStream, lastCheckPoint ?? StreamCheckpoint.StreamStart,
+            _local.SubscribeToStreamFrom(_receiver.InputStream, lastCheckPoint ?? StreamCheckpoint.StreamStart,
                 CatchUpSubscriptionSettings.Default, EventAppeared, LiveProcessingStarted, SubscriptionDropped);
         }
 
@@ -43,7 +43,7 @@ namespace EventStore.Plugins.EventStoreReceiver
             if (arg3 != null)
                 Log.Warning(arg3, $"Error: {arg3.GetBaseException().Message}");
             Log.Warning("ReceiverService Resubscribing...");
-            Subscribe(_lastCheckpoint);
+            Subscribe(_checkpointRepository.GetAsynch().Result);
         }
 
         private void LiveProcessingStarted(EventStoreCatchUpSubscription obj)
@@ -62,15 +62,14 @@ namespace EventStore.Plugins.EventStoreReceiver
             try
             {
                 // TODO review why the Expected Version error. It's wrong most of the time (it's 1 more than the current)
-                long eventNumber = metadata["$eventNumber"];
+                long eventNumber = long.Parse(metadata["$eventNumber"]);
                 if (eventNumber == 0)
                     eventNumber = -1;
 
                 await _local.AppendToStreamAsync(metadata["$eventStreamId"], eventNumber,
                     new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType,
                         resolvedEvent.Event.IsJson, resolvedEvent.Event.Data, resolvedEvent.Event.Metadata));
-                
-                _lastCheckpoint = resolvedEvent.OriginalEventNumber;
+                _checkpointRepository.Set(resolvedEvent.OriginalEventNumber);
             }
             catch (WrongExpectedVersionException ex)
             {
@@ -87,10 +86,10 @@ namespace EventStore.Plugins.EventStoreReceiver
             try
             {
                 if (metadata.ContainsKey("$errors"))
-                    metadata["$errors"] = $"{metadata["$errors"]},{_settings.Receiver}:{ex.GetBaseException().Message}";
+                    metadata["$errors"] = $"{metadata["$errors"]},{_receiver}:{ex.GetBaseException().Message}";
                 else
-                    metadata.Add("$errors", $"{_settings.Receiver}:{ex.GetBaseException().Message}");
-                if (_settings.Receiver.AppendInCaseOfConflict)
+                    metadata.Add("$errors", $"{_receiver}:{ex.GetBaseException().Message}");
+                if (_receiver.AppendInCaseOfConflict)
                 {
                     await _local.AppendToStreamAsync(metadata["$eventStreamId"], ExpectedVersion.Any,
                         new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson,
@@ -100,7 +99,7 @@ namespace EventStore.Plugins.EventStoreReceiver
                 {
                     Log.Warning($"WrongExpectedVersionException while ingesting replicated events");
                     Log.Warning(ex.GetBaseException().Message);
-                    var conflictStreamName = $"$conflicts-{metadata["$origin"]}-{_settings.Receiver}";
+                    var conflictStreamName = $"$conflicts-{metadata["$origin"]}-{_receiver}";
                     await _local.AppendToStreamAsync(conflictStreamName, ExpectedVersion.Any,
                         new EventData(resolvedEvent.Event.EventId, resolvedEvent.Event.EventType, resolvedEvent.Event.IsJson,
                             resolvedEvent.Event.Data, SerializeObject(metadata)));
