@@ -16,9 +16,9 @@ using EventStore.Core.TransactionLog.FileNamingStrategy;
 using EventStore.Core.Util;
 using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Data;
+using EventStore.Core.Index;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
-using EventStore.Plugins.Dispatcher;
-using EventStore.Plugins.Receiver;
+using EventStore.Plugins;
 
 namespace EventStore.Core
 {
@@ -133,8 +133,7 @@ namespace EventStore.Core
 
         private bool _gossipOnSingleNode;
         
-        protected IDispatcherServiceFactory _dispatcherServiceFactory;
-        protected IReceiverServiceFactory _receiverServiceFactory;
+        protected IEventStoreServiceFactory _pluginsServiceFactory;
         // ReSharper restore FieldCanBeMadeReadOnly.Local
 
         protected VNodeBuilder()
@@ -224,15 +223,9 @@ namespace EventStore.Core
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
         }
 
-        public VNodeBuilder WithDispatcher(IDispatcherServiceFactory dispatcherServiceFactory)
+        public VNodeBuilder WithPlugins(IEventStoreServiceFactory pluginsServiceFactory)
         {
-            _dispatcherServiceFactory = dispatcherServiceFactory;
-            return this;
-        }
-
-        public VNodeBuilder WithReceiver(IReceiverServiceFactory receiverServiceFactory)
-        {
-            _receiverServiceFactory = receiverServiceFactory;
+            _pluginsServiceFactory = pluginsServiceFactory;
             return this;
         }
 
@@ -1424,8 +1417,7 @@ namespace EventStore.Core
                     _alwaysKeepScavenged,
                     _gossipOnSingleNode,
                     _skipIndexScanOnReads,
-                    _dispatcherServiceFactory,
-                    _receiverServiceFactory);
+                    _pluginsServiceFactory);
             var infoController = new InfoController(options, _projectionType);
 
             _log.Info("{0,-25} {1}", "INSTANCE ID:", _vNodeSettings.NodeInfo.InstanceId);

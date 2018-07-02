@@ -15,8 +15,7 @@ using EventStore.Core.Services.Monitoring;
 using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Util;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
-using EventStore.Plugins.Dispatcher;
-using EventStore.Plugins.Receiver;
+using EventStore.Plugins;
 
 namespace EventStore.ClusterNode
 {
@@ -306,49 +305,26 @@ namespace EventStore.ClusterNode
             var authenticationProviderFactory = GetAuthenticationProviderFactory(options.AuthenticationType, authenticationConfig, plugInContainer);
             var consumerStrategyFactories = GetPlugInConsumerStrategyFactories(plugInContainer);
             builder.WithAuthenticationProvider(authenticationProviderFactory);
-            var dispatcherFactory = GetDispatcherFactory(plugInContainer);
-            builder.WithDispatcher(dispatcherFactory);
-            var receiverFactory = GetReceiverFactory(plugInContainer);
-            builder.WithReceiver(receiverFactory);
+            var pluginFactory = GetServiceFactory(plugInContainer);
+            builder.WithPlugins(pluginFactory);
             return builder.Build(options, consumerStrategyFactories);
         }
 
-        private static IDispatcherServiceFactory GetDispatcherFactory(CompositionContainer plugInContainer)
+        private static IEventStoreServiceFactory GetServiceFactory(CompositionContainer plugInContainer)
         {
-            var allPlugins = plugInContainer.GetExports<IDispatcherPlugin>();
+            var allPlugins = plugInContainer.GetExports<IEventStorePlugin>();
             
             foreach (var potentialPlugin in allPlugins)
             {
                 try
                 {
                     var plugin = potentialPlugin.Value;
-                    Log.Info("Loaded Dispatcher strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
+                    Log.Info("Loaded EventStore strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
                     return plugin.GetStrategyFactory();
                 }
                 catch (CompositionException ex)
                 {
-                    Log.ErrorException(ex, "Error loading Dispatcher strategy plugin.");
-                }
-            }
-
-            return null;
-        }
-
-        private static IReceiverServiceFactory GetReceiverFactory(CompositionContainer plugInContainer)
-        {
-            var allPlugins = plugInContainer.GetExports<IReceiverPlugin>();
-
-            foreach (var potentialPlugin in allPlugins)
-            {
-                try
-                {
-                    var plugin = potentialPlugin.Value;
-                    Log.Info("Loaded Receiver strategy plugin: {0} version {1}.", plugin.Name, plugin.Version);
-                    return plugin.GetStrategyFactory();
-                }
-                catch (CompositionException ex)
-                {
-                    Log.ErrorException(ex, "Error loading Receiver strategy plugin.");
+                    Log.ErrorException(ex, "Error loading EventStore strategy plugin.");
                 }
             }
 

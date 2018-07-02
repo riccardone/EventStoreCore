@@ -190,8 +190,7 @@
     <Compile Include="Services\AwakeReaderService\AwakeServiceMessage.cs" />
     <Compile Include="Services\ClusterStorageWriterService.cs" />
     <Compile Include="Services\ElectionsService.cs" />
-    <Compile Include="Services\GeoReplica\ReceiverHostService.cs" />
-    <Compile Include="Services\GeoReplica\DispatcherHostService.cs" />
+    <Compile Include="Services\Plugins\PluginsHostService.cs" />
     <Compile Include="Services\Gossip\DnsGossipSeedSource.cs" />
     <Compile Include="Services\Gossip\GossipServiceBase.cs" />
     <Compile Include="Services\Gossip\GossipState.cs" />

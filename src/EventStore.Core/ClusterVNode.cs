@@ -36,7 +36,7 @@ using System.Threading;
 using EventStore.Core.Services.Histograms;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 using System.Threading.Tasks;
-using EventStore.Core.Services.GeoReplica;
+using EventStore.Core.Services.Plugins;
 
 namespace EventStore.Core
 {
@@ -454,11 +454,9 @@ namespace EventStore.Core
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<MonitoringMessage.GetPersistentSubscriptionStats, Message>());
             _mainBus.Subscribe(perSubscrQueue.WidenFrom<SubscriptionMessage.PersistentSubscriptionTimerTick, Message>());
 
-            // GeoReplica plugins TODO implement a system to load plugins more generically
-            var dispatcherHostService = new DispatcherHostService(vNodeSettings.DispatcherServiceFactory);
-            _mainBus.Subscribe(dispatcherHostService);
-            var receiverHostService = new ReceiverHostService(vNodeSettings.ReceiverServiceFactory);
-            _mainBus.Subscribe(receiverHostService);
+            // Plugins 
+            var pluginsHostService = new PluginsHostService(vNodeSettings.PluginsServiceFactory);
+            _mainBus.Subscribe(pluginsHostService);
 
             //TODO CC can have multiple threads working on subscription if partition
             var consumerStrategyRegistry = new PersistentSubscriptionConsumerStrategyRegistry(_mainQueue, _mainBus, vNodeSettings.AdditionalConsumerStrategies);
