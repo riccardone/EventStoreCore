@@ -62,86 +62,16 @@ namespace EventStore.Plugins.GeoReplica.Dispatcher.Http
 
         public string Endpoint { get; }
 
-        //public async Task AppendToStreamAsync(long expectedVersion, dynamic evt, byte[] metadata)
-        //{
-        //    var url = Endpoint + "/streams/" + evt.Event.EventStreamId;
-        //    using (var request = new HttpRequestMessage(HttpMethod.Post, url))
-        //    {
-        //        request.Content = new StringContent(JsonConvert.SerializeObject(new List<dynamic>
-        //        {
-        //            new
-        //            {
-        //                evt.Event.EventId,
-        //                evt.Event.EventType,
-        //                Data = Encoding.UTF8.GetString(evt.Event.Data),
-        //                Metadata = Encoding.UTF8.GetString(metadata)
-        //            }
-        //        }), Encoding.UTF8, "application/vnd.eventstore.events+json");
-        //        request.Headers.Add("ES-ExpectedVersion", expectedVersion.ToString());
-        //        request.Headers.Add("ES-EventId", evt.Event.EventId.ToString());
-        //        request.Headers.Add("ES-EventType", evt.Event.EventType);
-        //        var result = await _httpClientProxy.SendAsync(_httpClient, request).ConfigureAwait(false);
-        //        if (!result.IsSuccessStatusCode)
-        //        {
-        //            // TODO differentiate the WrongExpectedVersion and any other error
-        //            throw new EventStoreHttpException(result.Content.ToString(), result.ReasonPhrase, result.StatusCode);
-        //        }
-        //    }
-        //}
-
         public async Task AppendToStreamAsync(string stream, dynamic[] events)
         {
-            throw new NotImplementedException();
-            var url = Endpoint + "/streams/" + stream;
+            var url = Endpoint + "streams/" + stream;
             var eventDatas = ToEventData(events);
             var body = ToHttpEvents(eventDatas);
-            using (var client = new HttpClient())
-            {
-                try
-                {
-                    client.Timeout = new TimeSpan(0, 0, 5);
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                    var json = JsonConvert.SerializeObject(body);
-
-                    var responseMessage = await client.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/vnd.eventstore.atom+json"));
-
-                    var response = await responseMessage.Content.ReadAsStringAsync();
-
-                    if (responseMessage.IsSuccessStatusCode)
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        throw new Exception("Request failed");
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-                
-            }
-            //using (var webClient = new WebClient())
-            //{
-            //    webClient.Headers.Add("Content-Type", "application/vnd.eventstore.atom+json");
-            //    webClient.Headers.Add("ES-ExpectedVersion", ExpectedVersion.Any.ToString());
-            //    var body = ToHttpEvents(eventDatas);
-            //    var bodyAsString = JsonConvert.SerializeObject(body);
-            //    try
-            //    {
-            //        var result = webClient.UploadString(new Uri(url), bodyAsString);
-            //    }
-            //    catch (Exception e)
-            //    {
-            //        throw;
-            //    }
-
-            //    return Task.CompletedTask;
-            //}
+            var json = JsonConvert.SerializeObject(body);
+            var responseMessage = await _httpClient.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/vnd.eventstore.atom+json"));
+            await responseMessage.Content.ReadAsStringAsync();
+            if (!responseMessage.IsSuccessStatusCode)
+                throw new Exception($"Request failed: {responseMessage.ReasonPhrase}");
         }
 
         private static IEnumerable<EventData> ToEventData(dynamic[] eventData)
@@ -161,14 +91,12 @@ namespace EventStore.Plugins.GeoReplica.Dispatcher.Http
         private HttpClient GetClient()
         {
             var handler = GetHandler();
-
             var client = new HttpClient(handler, true);
-
+            client.DefaultRequestHeaders.Accept.Clear();
             if (_settings.ConnectionTimeout.HasValue)
-            {
                 client.Timeout = _settings.ConnectionTimeout.Value;
-            }
-
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Add("ES-EventType", "GeoReplicaEventDispatched"); // Without this the operation throw an exception
             return client;
         }
 
