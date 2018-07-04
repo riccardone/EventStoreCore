@@ -33,8 +33,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.ClientAPI.Embedd
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Plugins", "EventStore.Plugins\EventStore.Plugins.csproj", "{F853AD1D-D328-4169-9A85-94D500844AFF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventStore.Plugins.GeoReplica", "EventStore.Plugins.GeoReplica\EventStore.Plugins.GeoReplica.csproj", "{E7CC69F9-70EA-45EE-80DA-3B21CDE10AE7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,10 +99,6 @@ Global
 		{F853AD1D-D328-4169-9A85-94D500844AFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F853AD1D-D328-4169-9A85-94D500844AFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F853AD1D-D328-4169-9A85-94D500844AFF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E7CC69F9-70EA-45EE-80DA-3B21CDE10AE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7CC69F9-70EA-45EE-80DA-3B21CDE10AE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E7CC69F9-70EA-45EE-80DA-3B21CDE10AE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E7CC69F9-70EA-45EE-80DA-3B21CDE10AE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
