@@ -64,7 +64,7 @@ namespace EventStore.Plugins.GeoReplica.Dispatcher
         private Task EventAppeared(EventStoreCatchUpSubscription eventStoreCatchUpSubscription, ResolvedEvent resolvedEvent)
         {
             // Allow only user events and metadata events
-            if (resolvedEvent.Event.EventType.StartsWith("$") && !resolvedEvent.Event.EventType.StartsWith("$$$") ||
+            if (resolvedEvent.Event == null || resolvedEvent.Event.EventType == null || resolvedEvent.Event.EventType.StartsWith("$") && !resolvedEvent.Event.EventType.StartsWith("$$$") ||
                 resolvedEvent.Event.EventType.Equals(_positionRepository.PositionEventType) || !resolvedEvent.OriginalPosition.HasValue)
                 return Task.CompletedTask;
 
