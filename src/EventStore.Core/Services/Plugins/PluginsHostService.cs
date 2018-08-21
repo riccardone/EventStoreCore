@@ -6,6 +6,7 @@ using EventStore.Common.Log;
 using EventStore.Core.Bus;
 using EventStore.Core.Data;
 using EventStore.Core.Messages;
+using EventStore.Core.TransactionLog.Checkpoint;
 using EventStore.Plugins;
 using Newtonsoft.Json;
 
@@ -18,13 +19,24 @@ namespace EventStore.Core.Services.Plugins
     {
         private static readonly ILogger Log = LogManager.GetLoggerFor<PluginsHostService>();
         private readonly IEventStoreServiceFactory _serviceFactory;
+        private readonly ICheckpoint _checkpoint;
         private IList<IEventStoreService> _eventStoreServices = new List<IEventStoreService>();
         private bool _started;
 
-        public PluginsHostService(IEventStoreServiceFactory factory)
+        public PluginsHostService(IEventStoreServiceFactory factory, ICheckpoint checkpoint)
         {
             _serviceFactory = factory;
+            _checkpoint = checkpoint;
+
+            //var checkpointTimer = new System.Timers.Timer(1000);
+            //checkpointTimer.Elapsed += CheckpointTimer_Elapsed;
         }
+
+        //private void CheckpointTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        //{
+        //    foreach (var eventStoreService in _eventStoreServices)
+        //        eventStoreService.TryHandle(new Dictionary<string, dynamic> {{"checkpoint", _checkpoint.Read()}});
+        //}
 
         public void Handle(SystemMessage.StateChangeMessage message)
         {
@@ -76,6 +88,7 @@ namespace EventStore.Core.Services.Plugins
                 ? new PluginMessage.GetStatsCompleted(PluginMessage.GetStatsCompleted.OperationStatus.NotReady, null)
                 : new PluginMessage.GetStatsCompleted(PluginMessage.GetStatsCompleted.OperationStatus.Success,
                    JsonConvert.SerializeObject(results)));
+            //_checkpoint.Read()
         }
     }
 }
