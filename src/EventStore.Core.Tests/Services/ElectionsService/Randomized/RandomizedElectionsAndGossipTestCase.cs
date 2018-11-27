@@ -77,7 +77,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized
             var members = _createInitialGossip(instance, allInstances.ToArray());
             _updateGossipProcessor.SetInitialData(allInstances, members);
 
-            return new GossipMessage.GossipUpdated(new ClusterInfo(members));
+            return new GossipMessage.GossipUpdated(new ClusterInfo(members), new ClusterInfo(_createInitialGossip(instance, allInstances.ToArray())));
         }
 
         protected override SendOverHttpProcessor GetSendOverHttpProcessor()

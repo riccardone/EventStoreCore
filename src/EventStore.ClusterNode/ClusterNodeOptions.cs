@@ -239,9 +239,12 @@ namespace EventStore.ClusterNode
         
         [ArgDescription(Opts.InitializationThreadsDescr, Opts.DbGroup)]
         public int InitializationThreads { get; set; }
-
-        [ArgDescription(Opts.StructuredLogDescr, Opts.DbGroup)]
+		
+		[ArgDescription(Opts.StructuredLogDescr, Opts.DbGroup)]
         public bool StructuredLog { get; set; }
+
+		[ArgDescription(Opts.IsPromotableDescr, Opts.ClusterGroup)]
+        public bool IsPromotable { get; set; }
 
         public ClusterNodeOptions()
         {
@@ -362,6 +365,8 @@ namespace EventStore.ClusterNode
 
             ConnectionPendingSendBytesThreshold = Opts.ConnectionPendingSendBytesThresholdDefault;
             ChunkInitialReaderCount = Opts.ChunkInitialReaderCountDefault;
+
+            IsPromotable = Opts.IsPromotableDefault;
         }
     }
 }

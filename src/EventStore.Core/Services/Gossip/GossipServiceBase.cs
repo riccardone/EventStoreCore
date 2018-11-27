@@ -161,7 +161,7 @@ namespace EventStore.Core.Services.Gossip
 
             if (_cluster.HasChangedSince(oldCluster))
                 LogClusterChange(oldCluster, _cluster, string.Format("gossip received from [{0}]", message.Server));
-            _bus.Publish(new GossipMessage.GossipUpdated(_cluster));
+            _bus.Publish(new GossipMessage.GossipUpdated(_cluster, oldCluster));
         }
 
         public void Handle(SystemMessage.StateChangeMessage message)
@@ -169,11 +169,12 @@ namespace EventStore.Core.Services.Gossip
             CurrentRole = message.State;
             var replicaState = message as SystemMessage.ReplicaStateMessage;
             CurrentMaster = replicaState == null ? null : replicaState.Master;
+            var oldCluster = new ClusterInfo(_cluster.Members);
             _cluster = UpdateCluster(_cluster, x => x.InstanceId == NodeInfo.InstanceId ? GetUpdatedMe(x) : x);
 
             //if (_cluster.HasChangedSince(oldCluster))
             //LogClusterChange(oldCluster, _cluster, _nodeInfo.InternalHttp);
-            _bus.Publish(new GossipMessage.GossipUpdated(_cluster));
+            _bus.Publish(new GossipMessage.GossipUpdated(_cluster, oldCluster));
         }
 
         public void Handle(GossipMessage.GossipSendFailed message)
@@ -194,7 +195,7 @@ namespace EventStore.Core.Services.Gossip
             _cluster = UpdateCluster(_cluster, x => x.Is(message.Recipient) ? x.Updated(isAlive: false) : x);
             if (_cluster.HasChangedSince(oldCluster))
                 LogClusterChange(oldCluster, _cluster, string.Format("gossip send failed to [{0}]", message.Recipient));
-            _bus.Publish(new GossipMessage.GossipUpdated(_cluster));
+            _bus.Publish(new GossipMessage.GossipUpdated(_cluster, oldCluster));
         }
 
         public void Handle(SystemMessage.VNodeConnectionLost message)
@@ -209,7 +210,7 @@ namespace EventStore.Core.Services.Gossip
             _cluster = UpdateCluster(_cluster, x => x.Is(message.VNodeEndPoint) ? x.Updated(isAlive: false) : x);
             if (_cluster.HasChangedSince(oldCluster))
                 LogClusterChange(oldCluster, _cluster, string.Format("TCP connection lost to [{0}]", message.VNodeEndPoint));
-            _bus.Publish(new GossipMessage.GossipUpdated(_cluster));
+            _bus.Publish(new GossipMessage.GossipUpdated(_cluster, oldCluster));
         }
 
         public void Handle(SystemMessage.VNodeConnectionEstablished message)
@@ -218,7 +219,7 @@ namespace EventStore.Core.Services.Gossip
             _cluster = UpdateCluster(_cluster, x => x.Is(message.VNodeEndPoint) ? x.Updated(isAlive: true) : x);
             if (_cluster.HasChangedSince(oldCluster))
                 LogClusterChange(oldCluster, _cluster, string.Format("TCP connection established to [{0}]", message.VNodeEndPoint));
-            _bus.Publish(new GossipMessage.GossipUpdated(_cluster));
+            _bus.Publish(new GossipMessage.GossipUpdated(_cluster, oldCluster));
         }
 
         private ClusterInfo MergeClusters(ClusterInfo myCluster, ClusterInfo othersCluster,

@@ -190,6 +190,7 @@ namespace EventStore.Core.Services.Monitoring
             {
                 case VNodeState.CatchingUp:
                 case VNodeState.Clone:
+                case VNodeState.NonPromotableClone:
                 case VNodeState.Slave:
                 case VNodeState.Master:
                 {
