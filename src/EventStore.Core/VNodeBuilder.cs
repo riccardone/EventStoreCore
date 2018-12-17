@@ -114,6 +114,7 @@ namespace EventStore.Core
         protected ProjectionType _projectionType;
         protected int _projectionsThreads;
         protected TimeSpan _projectionsQueryExpiry;
+        protected bool _failOutoforderProjections;
 
         protected TFChunkDb _db;
         protected ClusterVNodeSettings _vNodeSettings;
@@ -218,6 +219,7 @@ namespace EventStore.Core
             _skipIndexScanOnReads = Opts.SkipIndexScanOnReadsDefault;
             _chunkInitialReaderCount = Opts.ChunkInitialReaderCountDefault;
             _projectionsQueryExpiry = TimeSpan.FromMinutes(Opts.ProjectionsQueryExpiryDefault);
+            _failOutoforderProjections = Opts.FailOutoforderProjectionsDefault;
         }
 
         protected VNodeBuilder WithSingleNodeSettings()
@@ -262,11 +264,13 @@ namespace EventStore.Core
         /// </summary>
         /// <param name="projectionType">The mode in which to run the projections system</param>
         /// <param name="numberOfThreads">The number of threads to use for projections. Defaults to 3.</param>
+        /// <param name="failOutoforderProjections">True if you want to keep the existing projection behaviour and fail in case of wrong sequence number. Defaults to true.</param>
         /// <returns>A <see cref="VNodeBuilder"/> with the options set</returns>
-        public VNodeBuilder RunProjections(ProjectionType projectionType, int numberOfThreads = Opts.ProjectionThreadsDefault)
+        public VNodeBuilder RunProjections(ProjectionType projectionType, int numberOfThreads = Opts.ProjectionThreadsDefault, bool failOutoforderProjections = Opts.FailOutoforderProjectionsDefault)
         {
             _projectionType = projectionType;
             _projectionsThreads = numberOfThreads;
+            _failOutoforderProjections = failOutoforderProjections;
             return this;
         }
 
@@ -1407,7 +1411,8 @@ namespace EventStore.Core
                     _readerThreadsCount,
                     _alwaysKeepScavenged,
                     _gossipOnSingleNode,
-                    _skipIndexScanOnReads);
+                    _skipIndexScanOnReads,
+                    _failOutoforderProjections);
             var infoController = new InfoController(options, _projectionType);
 
             _log.Info("{0,-25} {1}", "INSTANCE ID:", _vNodeSettings.NodeInfo.InstanceId);

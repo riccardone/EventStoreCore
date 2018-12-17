@@ -79,6 +79,8 @@ namespace EventStore.Core.Cluster.Settings
 
         public readonly bool GossipOnSingleNode;
 
+        public readonly bool FailOutoforderProjections;
+
         public ClusterVNodeSettings(Guid instanceId, int debugIndex,
                                     IPEndPoint internalTcpEndPoint,
                                     IPEndPoint internalSecureTcpEndPoint,
@@ -140,7 +142,8 @@ namespace EventStore.Core.Cluster.Settings
                                     int readerThreadsCount = 4,
                                     bool alwaysKeepScavenged = false,
                                     bool gossipOnSingleNode = false,
-                                    bool skipIndexScanOnReads = false)
+                                    bool skipIndexScanOnReads = false,
+                                    bool failOutOfOrderProjections = true)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -233,6 +236,8 @@ namespace EventStore.Core.Cluster.Settings
             ReaderThreadsCount = readerThreadsCount;
             AlwaysKeepScavenged = alwaysKeepScavenged;
             SkipIndexScanOnReads = skipIndexScanOnReads;
+
+            FailOutoforderProjections = failOutOfOrderProjections;
         }
 
 
