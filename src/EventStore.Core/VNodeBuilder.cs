@@ -18,6 +18,7 @@ using EventStore.Core.Services.Transport.Http.Controllers;
 using EventStore.Core.Data;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
 using EventStore.Core.Index;
+using EventStore.Plugins;
 
 namespace EventStore.Core
 {
@@ -132,6 +133,8 @@ namespace EventStore.Core
         protected bool _skipIndexScanOnReads;
         private bool _reduceFileCachePressure;
         private int _initializationThreads;
+        protected IEventStoreServiceFactory _pluginsServiceFactory;
+        protected IEventStoreControllerFactory _pluginsControllerFactory;
 
         private bool _gossipOnSingleNode;
 
@@ -233,6 +236,18 @@ namespace EventStore.Core
         public VNodeBuilder AsPromotable(bool value)
         {
             _isPromotable = value;
+            return this;
+        }
+
+        public VNodeBuilder WithPlugins(IEventStoreServiceFactory pluginsServiceFactory)
+        {
+            _pluginsServiceFactory = pluginsServiceFactory;
+            return this;
+        }
+
+        public VNodeBuilder WithControllers(IEventStoreControllerFactory pluginsControllerFactory)
+        {
+            _pluginsControllerFactory = pluginsControllerFactory;
             return this;
         }
 
@@ -1464,7 +1479,9 @@ namespace EventStore.Core
                     _initializationThreads,
                     _faultOutOfOrderProjections,
                     _structuredLog,
-					_isPromotable);
+					_isPromotable,
+					_pluginsServiceFactory,
+                    _pluginsControllerFactory);
             
             var infoController = new InfoController(options, _projectionType);
 

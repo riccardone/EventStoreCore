@@ -9,6 +9,7 @@ using EventStore.Core.Authentication;
 using EventStore.Core.Data;
 using EventStore.Core.Services.Monitoring;
 using EventStore.Core.Services.PersistentSubscription.ConsumerStrategy;
+using EventStore.Plugins;
 
 namespace EventStore.Core.Cluster.Settings
 {
@@ -79,6 +80,8 @@ namespace EventStore.Core.Cluster.Settings
         public readonly bool SkipIndexScanOnReads;
         public readonly bool ReduceFileCachePressure;
         public readonly int InitializationThreads;
+        public readonly IEventStoreServiceFactory PluginsServiceFactory;
+        public readonly IEventStoreControllerFactory PluginsControllerFactory;
         public readonly bool GossipOnSingleNode;
         public readonly bool FaultOutOfOrderProjections;
         public readonly bool StructuredLog;
@@ -151,7 +154,9 @@ namespace EventStore.Core.Cluster.Settings
                                     int initializationThreads = 1,
                                     bool faultOutOfOrderProjections = false,
                                     bool structuredLog = false,
-									bool isPromotable = true)
+									bool isPromotable = true,
+									IEventStoreServiceFactory pluginsServiceFactory = null,
+                                    IEventStoreControllerFactory pluginsControllerFactory = null)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -248,6 +253,8 @@ namespace EventStore.Core.Cluster.Settings
             ReduceFileCachePressure = reduceFileCachePressure;
             InitializationThreads = initializationThreads;
             IsPromotable = isPromotable;
+			PluginsServiceFactory = pluginsServiceFactory;
+            PluginsControllerFactory = pluginsControllerFactory;
             FaultOutOfOrderProjections = faultOutOfOrderProjections;
             StructuredLog = structuredLog;
         }
