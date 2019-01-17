@@ -82,6 +82,9 @@ namespace EventStore.Core.Cluster.Settings
         public readonly bool GossipOnSingleNode;
         public readonly bool FaultOutOfOrderProjections;
         public readonly bool StructuredLog;
+		
+		public readonly bool IsPromotable;
+		
         public ClusterVNodeSettings(Guid instanceId, int debugIndex,
                                     IPEndPoint internalTcpEndPoint,
                                     IPEndPoint internalSecureTcpEndPoint,
@@ -147,7 +150,8 @@ namespace EventStore.Core.Cluster.Settings
                                     bool reduceFileCachePressure = false,
                                     int initializationThreads = 1,
                                     bool faultOutOfOrderProjections = false,
-                                    bool structuredLog = false)
+                                    bool structuredLog = false,
+									bool isPromotable = true)
         {
             Ensure.NotEmptyGuid(instanceId, "instanceId");
             Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
@@ -176,7 +180,7 @@ namespace EventStore.Core.Cluster.Settings
             NodeInfo = new VNodeInfo(instanceId, debugIndex,
                                      internalTcpEndPoint, internalSecureTcpEndPoint,
                                      externalTcpEndPoint, externalSecureTcpEndPoint,
-                                     internalHttpEndPoint, externalHttpEndPoint);
+                                     internalHttpEndPoint, externalHttpEndPoint, isPromotable);
             GossipAdvertiseInfo = gossipAdvertiseInfo;
             IntHttpPrefixes = intHttpPrefixes;
             ExtHttpPrefixes = extHttpPrefixes;
@@ -243,7 +247,7 @@ namespace EventStore.Core.Cluster.Settings
             SkipIndexScanOnReads = skipIndexScanOnReads;
             ReduceFileCachePressure = reduceFileCachePressure;
             InitializationThreads = initializationThreads;
-
+            IsPromotable = isPromotable;
             FaultOutOfOrderProjections = faultOutOfOrderProjections;
             StructuredLog = structuredLog;
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using EventStore.Common.Utils;
@@ -17,6 +18,11 @@ namespace EventStore.Core.Tests.Services.ElectionsService
 
         private static ClusterVNodeSettings CreateVNode(int nodeNumber)
         {
+            return CreateVNode(nodeNumber, Opts.IsPromotableDefault);
+        }
+
+        private static ClusterVNodeSettings CreateVNode(int nodeNumber, bool isPromotable)
+        {
             int tcpIntPort = StartingPort + nodeNumber * 2,
                 tcpExtPort = tcpIntPort + 1,
                 httpIntPort = tcpIntPort + 10,
@@ -25,12 +31,12 @@ namespace EventStore.Core.Tests.Services.ElectionsService
             var vnode = new ClusterVNodeSettings(Guid.NewGuid(), 0,
                 GetLoopbackForPort(tcpIntPort), null,
                 GetLoopbackForPort(tcpExtPort), null,
-                GetLoopbackForPort(httpIntPort), GetLoopbackForPort(httpExtPort), 
-                new Data.GossipAdvertiseInfo(GetLoopbackForPort(tcpIntPort),null,
-                                             GetLoopbackForPort(tcpExtPort),null,
-                                             GetLoopbackForPort(httpIntPort),
-                                             GetLoopbackForPort(httpExtPort),
-                                             null, null, 0, 0),
+                GetLoopbackForPort(httpIntPort), GetLoopbackForPort(httpExtPort),
+                new Data.GossipAdvertiseInfo(GetLoopbackForPort(tcpIntPort), null,
+                    GetLoopbackForPort(tcpExtPort), null,
+                    GetLoopbackForPort(httpIntPort),
+                    GetLoopbackForPort(httpExtPort),
+                    null, null, 0, 0),
                 new[] { GetLoopbackForPort(httpIntPort).ToHttpUrl(EndpointExtensions.HTTP_SCHEMA) },
                 new[] { GetLoopbackForPort(httpExtPort).ToHttpUrl(EndpointExtensions.HTTP_SCHEMA) },
                 false, null, 1, false, "dns", new[] { GetLoopbackForPort(ManagerPort) },
@@ -41,8 +47,14 @@ namespace EventStore.Core.Tests.Services.ElectionsService
                 TimeSpan.FromSeconds(10),
                 TimeSpan.FromSeconds(10),
                 TimeSpan.FromSeconds(10),
-                TimeSpan.FromSeconds(10), true, Opts.MaxMemtableSizeDefault, Opts.HashCollisionReadLimitDefault, false, false, false,
-                Opts.ConnectionPendingSendBytesThresholdDefault, Opts.ChunkInitialReaderCountDefault);
+                TimeSpan.FromSeconds(10), true, Opts.MaxMemtableSizeDefault, Opts.HashCollisionReadLimitDefault, false,
+                false, false,
+                Opts.ConnectionPendingSendBytesThresholdDefault, Opts.ChunkInitialReaderCountDefault, null,
+                Opts.HistogramEnabledDefault, Opts.SkipDbVerifyDefault, Opts.IndexCacheDepthDefault
+                , Opts.IndexBitnessVersionDefault, Opts.OptimizeIndexMergeDefault, null,
+                Opts.UnsafeIgnoreHardDeleteDefault, Opts.BetterOrderingDefault
+                , Opts.ReaderThreadsCountDefault, Opts.AlwaysKeepScavengedDefault, Opts.GossipOnSingleNodeDefault,
+                Opts.SkipIndexScanOnReadsDefault, Opts.ReduceFileCachePressureDefault, Opts.InitializationThreadsDefault, isPromotable);
 
             return vnode;
         }
@@ -65,6 +77,27 @@ namespace EventStore.Core.Tests.Services.ElectionsService
             var others = nodes.Where((x, i) => i != selfIndex).ToArray();
             
             var settings = new ClusterSettings("test-dns", clusterManager, self, others, nodes.Length);
+            return settings;
+        }
+
+        public ClusterSettings GetClusterSettingsWithSelfAsNonPromotableClone(int selfIndex, int nodesCount)
+        {
+            if (selfIndex < 0 || selfIndex >= nodesCount)
+                throw new ArgumentOutOfRangeException("selfIndex", "Index of self should be in range of created nodes");
+
+
+            var clusterManager = GetLoopbackForPort(ManagerPort);
+
+            var nodes = new List<ClusterVNodeSettings>();
+            for (var i = 0; i < nodesCount; i++)
+            {
+                nodes.Add(i == selfIndex ? CreateVNode(i, false) : CreateVNode(i));
+            }
+
+            var self = nodes[selfIndex];
+            var others = nodes.Where((x, i) => i != selfIndex).ToArray();
+
+            var settings = new ClusterSettings("test-dns", clusterManager, self, others, nodes.Count);
             return settings;
         }
     }

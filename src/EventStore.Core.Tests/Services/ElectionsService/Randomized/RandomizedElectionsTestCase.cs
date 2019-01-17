@@ -33,7 +33,9 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized
         public readonly IRandTestItemProcessor Logger;
         public IRandTestFinishCondition FinishCondition;
 
-        private readonly List<ElectionsInstance> _instances = new List<ElectionsInstance>(); 
+        private readonly List<ElectionsInstance> _instances = new List<ElectionsInstance>();
+
+        private readonly bool _isPromotable;
 
         public RandomizedElectionsTestCase(int maxIterCnt, 
                                            int instancesCnt, 
@@ -42,7 +44,8 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized
                                            int httpMaxDelay, 
                                            int timerMinDelay, 
                                            int timerMaxDelay,
-                                           int? rndSeed = null)
+                                           int? rndSeed = null,
+                                           bool isPromotable = true)
         {
             RndSeed = rndSeed ?? Math.Abs(Environment.TickCount);
             Rnd = new Random(RndSeed);
@@ -54,6 +57,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized
             HttpMaxDelay = httpMaxDelay;
             _timerMinDelay = timerMinDelay;
             _timerMaxDelay = timerMaxDelay;
+            _isPromotable = isPromotable;
 
             Runner = new RandomTestRunner(_maxIterCnt);
             Logger = new ElectionsLogger();
@@ -68,7 +72,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized
                 var inputBus = new InMemoryBus(string.Format("ELECTIONS-INPUT-BUS-{0}", i));
                 var outputBus = new InMemoryBus(string.Format("ELECTIONS-OUTPUT-BUS-{0}", i));
                 var endPoint = new IPEndPoint(BaseEndPoint.Address, BaseEndPoint.Port + i);
-                var nodeInfo = new VNodeInfo(Guid.NewGuid(), 0, endPoint, endPoint, endPoint, endPoint, endPoint, endPoint);
+                var nodeInfo = new VNodeInfo(Guid.NewGuid(), 0, endPoint, endPoint, endPoint, endPoint, endPoint, endPoint, _isPromotable);
                 _instances.Add(new ElectionsInstance(nodeInfo.InstanceId, endPoint, inputBus, outputBus));
 
                 sendOverHttpHandler.RegisterEndPoint(endPoint, inputBus);
@@ -118,7 +122,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized
             var members = allInstances.Select(
                 x => MemberInfo.ForVNode(x.InstanceId, DateTime.UtcNow, VNodeState.Unknown, true,
                                          x.EndPoint, null, x.EndPoint, null, x.EndPoint, x.EndPoint, -1, 0, 0, -1, -1, Guid.Empty, 0));
-            var gossip = new GossipMessage.GossipUpdated(new ClusterInfo(members.ToArray()));
+            var gossip = new GossipMessage.GossipUpdated(new ClusterInfo(members.ToArray()), new ClusterInfo());
             return gossip;
         }
 

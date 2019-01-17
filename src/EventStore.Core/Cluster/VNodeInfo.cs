@@ -4,12 +4,12 @@ namespace EventStore.Core.Cluster
 {
     public static class VNodeInfoHelper
     {
-        public static VNodeInfo FromMemberInfo(MemberInfo member)
+        public static VNodeInfo FromMemberInfo(MemberInfo member, bool isPromotable)
         {
             return new VNodeInfo(member.InstanceId, 0,
                                  member.InternalTcpEndPoint, member.InternalSecureTcpEndPoint,
                                  member.ExternalTcpEndPoint, member.ExternalSecureTcpEndPoint,
-                                 member.InternalHttpEndPoint, member.ExternalHttpEndPoint);
+                                 member.InternalHttpEndPoint, member.ExternalHttpEndPoint, isPromotable);
         }
     }
 }
