@@ -84,6 +84,7 @@ namespace EventStore.Core.Cluster.Settings {
 		public readonly bool StructuredLog;
 
 		public readonly bool IsPromotable;
+		public readonly bool IsClone;
 
 		public ClusterVNodeSettings(Guid instanceId, int debugIndex,
 			IPEndPoint internalTcpEndPoint,
@@ -152,7 +153,8 @@ namespace EventStore.Core.Cluster.Settings {
 			bool faultOutOfOrderProjections = false,
 			bool structuredLog = false,
 			int maxAutoMergeIndexLevel = 1000,
-			bool isPromotable = true) {
+			bool isPromotable = false,
+			bool isClone = false) {
 			Ensure.NotEmptyGuid(instanceId, "instanceId");
 			Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
 			Ensure.NotNull(externalTcpEndPoint, "externalTcpEndPoint");
@@ -182,7 +184,7 @@ namespace EventStore.Core.Cluster.Settings {
 				internalTcpEndPoint, internalSecureTcpEndPoint,
 				externalTcpEndPoint, externalSecureTcpEndPoint,
 				internalHttpEndPoint, externalHttpEndPoint,
-				isPromotable);
+				isPromotable, isClone);
 			GossipAdvertiseInfo = gossipAdvertiseInfo;
 			IntHttpPrefixes = intHttpPrefixes;
 			ExtHttpPrefixes = extHttpPrefixes;
@@ -254,6 +256,7 @@ namespace EventStore.Core.Cluster.Settings {
 			FaultOutOfOrderProjections = faultOutOfOrderProjections;
 			StructuredLog = structuredLog;
 			IsPromotable = isPromotable;
+			IsClone = isClone;
 		}
 
 

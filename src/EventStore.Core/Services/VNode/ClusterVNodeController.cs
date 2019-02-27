@@ -414,7 +414,7 @@ namespace EventStore.Core.Services.VNode {
 				return;
 			}
 
-			_master = VNodeInfoHelper.FromMemberInfo(message.Master, true);
+			_master = VNodeInfoHelper.FromMemberInfo(message.Master, true, false);
 			_subscriptionId = Guid.NewGuid();
 			_stateCorrelationId = Guid.NewGuid();
 			_outputBus.Publish(message);

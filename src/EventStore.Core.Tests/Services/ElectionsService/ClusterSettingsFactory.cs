@@ -15,7 +15,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService {
 		private const int StartingPort = 1002;
 
 		private static ClusterVNodeSettings CreateVNode(int nodeNumber) {
-			return CreateVNode(nodeNumber, Opts.IsPromotableDefault);
+			return CreateVNode(nodeNumber, Opts.IsPromotableCloneDefault);
 		}
 
 		private static ClusterVNodeSettings CreateVNode(int nodeNumber, bool isPromotable) {

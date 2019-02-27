@@ -574,7 +574,8 @@ namespace EventStore.Core {
 				vNodeSettings.GossipAdvertiseInfo.ExternalSecureTcp,
 				vNodeSettings.GossipAdvertiseInfo.InternalHttp,
 				vNodeSettings.GossipAdvertiseInfo.ExternalHttp,
-				_nodeInfo.IsPromotable);
+				_nodeInfo.IsPromotable,
+				_nodeInfo.IsClone);
 			if (!isSingleNode) {
 				// MASTER REPLICATION
 				var masterReplicationService = new MasterReplicationService(_mainQueue, gossipInfo.InstanceId, db,

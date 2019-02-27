@@ -135,8 +135,12 @@ namespace EventStore.Core.Services {
 			if (_state == ElectionsState.Shutdown) return;
 			if (_state == ElectionsState.ElectingLeader) return;
 
-			if (!_nodeInfo.IsPromotable)
+			if (_nodeInfo.IsClone && !_nodeInfo.IsPromotable)
 				Log.Trace("ELECTIONS: THIS NODE IS A NON PROMOTABLE CLONE");
+
+			if (_nodeInfo.IsClone && _nodeInfo.IsPromotable) {
+				Log.Trace("ELECTIONS: THIS NODE IS A PROMOTABLE CLONE");
+			}
 
 			Log.Debug("ELECTIONS: STARTING ELECTIONS.");
 			ShiftToLeaderElection(_lastAttemptedView + 1);
@@ -267,11 +271,12 @@ namespace EventStore.Core.Services {
 			if (_state == ElectionsState.ElectingLeader) // install the view
 				ShiftToRegNonLeader();
 
-			if (_nodeInfo.IsPromotable)
-				_publisher.Publish(new HttpMessage.SendOverHttp(message.ServerInternalHttp, CreatePrepareOk(message.View), DateTime.Now.Add(LeaderElectionProgressTimeout)));
-			else {
+			if (_nodeInfo.IsClone && !_nodeInfo.IsPromotable) {
 				Log.Info("ELECTIONS: I'm a NON PROMOTABLE CLONE and I can't be a candidate [{0}]", message.ServerInternalHttp);
 				_publisher.Publish(CreatePrepareKo(message.View));
+			}
+			else {
+				_publisher.Publish(new HttpMessage.SendOverHttp(message.ServerInternalHttp, CreatePrepareOk(message.View), DateTime.Now.Add(LeaderElectionProgressTimeout)));
 			}
 		}
 
@@ -295,7 +300,7 @@ namespace EventStore.Core.Services {
 			Log.Debug("ELECTIONS: (V={lastAttemptedView}) SHIFT TO REG_NONLEADER.", _lastAttemptedView);
 
 			// If I'm a NPC I can't set my state as leader and send proposals
-			if (!_nodeInfo.IsPromotable)
+			if (_nodeInfo.IsClone && !_nodeInfo.IsPromotable)
 				return;
 
 			_state = ElectionsState.NonLeader;

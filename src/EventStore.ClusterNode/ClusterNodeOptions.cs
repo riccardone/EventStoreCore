@@ -305,8 +305,11 @@ namespace EventStore.ClusterNode {
 		[ArgDescription(Opts.MaxAutoMergeIndexLevelDescr, Opts.DbGroup)]
 		public int MaxAutoMergeIndexLevel { get; set; }
 
-		[ArgDescription(Opts.IsPromotableDescr, Opts.ClusterGroup)]
+		[ArgDescription(Opts.IsPromotableCloneDescr, Opts.ClusterGroup)]
 		public bool IsPromotable { get; set; }
+
+		[ArgDescription(Opts.IsCloneDescr, Opts.ClusterGroup)]
+		public bool IsClone { get; set; }
 
 		public ClusterNodeOptions() {
 			Config = "";
@@ -430,7 +433,8 @@ namespace EventStore.ClusterNode {
 
 			MaxAutoMergeIndexLevel = Opts.MaxAutoMergeIndexLevelDefault;
 
-			IsPromotable = Opts.IsPromotableDefault;
+			IsPromotable = Opts.IsPromotableCloneDefault;
+			IsClone = Opts.IsCloneDefault;
 		}
 	}
 }

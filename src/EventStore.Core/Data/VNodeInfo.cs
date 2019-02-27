@@ -13,11 +13,12 @@ namespace EventStore.Core.Data {
 		public readonly IPEndPoint InternalHttp;
 		public readonly IPEndPoint ExternalHttp;
 		public readonly bool IsPromotable;
+		public readonly bool IsClone;
 
 		public VNodeInfo(Guid instanceId, int debugIndex,
 			IPEndPoint internalTcp, IPEndPoint internalSecureTcp,
 			IPEndPoint externalTcp, IPEndPoint externalSecureTcp,
-			IPEndPoint internalHttp, IPEndPoint externalHttp, bool isPromotable) {
+			IPEndPoint internalHttp, IPEndPoint externalHttp, bool isPromotable, bool isClone) {
 			Ensure.NotEmptyGuid(instanceId, "instanceId");
 			Ensure.NotNull(internalTcp, "internalTcp");
 			Ensure.NotNull(externalTcp, "externalTcp");
@@ -33,6 +34,7 @@ namespace EventStore.Core.Data {
 			InternalHttp = internalHttp;
 			ExternalHttp = externalHttp;
 			IsPromotable = isPromotable;
+			IsClone = isClone;
 		}
 
 		public bool Is(IPEndPoint endPoint) {
