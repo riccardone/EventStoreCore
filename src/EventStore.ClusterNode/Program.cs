@@ -166,7 +166,7 @@ namespace EventStore.ClusterNode {
 
 			VNodeBuilder builder;
 			if (options.ClusterSize > 1) {
-				builder = ClusterVNodeBuilder.AsClusterMember(options.ClusterSize).AsPromotable(options.IsPromotable).AsClone(options.IsClone);
+				builder = ClusterVNodeBuilder.AsClusterMember(options.ClusterSize).AsClone(options.IsClone);
 			} else {
 				builder = ClusterVNodeBuilder.AsSingleNode();
 			}

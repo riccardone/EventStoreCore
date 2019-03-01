@@ -360,10 +360,7 @@ namespace EventStore.Core.Util {
 		public const string GossipSeedDescr = "Endpoints for other cluster nodes from which to seed gossip";
 		public static readonly IPEndPoint[] GossipSeedDefault = new IPEndPoint[0];
 
-		public const string IsPromotableCloneDescr = "Whether or not this clone node is allowed to join into elections if false this node is just an async replica (npc)";
-		public static readonly bool IsPromotableCloneDefault = false;
-
-		public const string IsCloneDescr = "Whether or not this node is a clone if true this node is just an async replica";
+		public const string IsCloneDescr = "Whether or not this node is a clone if true this node is just an async non promotable replica";
 		public static readonly bool IsCloneDefault = false;
 
 		/*

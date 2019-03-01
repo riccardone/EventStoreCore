@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "EventStore.ClusterNode": {
+      "commandName": "Project",
+      "commandLineArgs": "--int-ip 127.0.0.1 --ext-ip 127.0.0.1 --int-tcp-port=4111 --ext-tcp-port=4112 --int-http-port=4113 --ext-http-port=4114 --cluster-size=3 --discover-via-dns=false --gossip-seed=127.0.0.1:1113,127.0.0.1:2113,127.0.0.1:3113 --structured-log=false"
+    }
+  }
+}

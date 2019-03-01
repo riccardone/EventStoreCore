@@ -414,7 +414,7 @@ namespace EventStore.Core.Services.VNode {
 				return;
 			}
 
-			_master = VNodeInfoHelper.FromMemberInfo(message.Master, true, false);
+			_master = VNodeInfoHelper.FromMemberInfo(message.Master, false);
 			_subscriptionId = Guid.NewGuid();
 			_stateCorrelationId = Guid.NewGuid();
 			_outputBus.Publish(message);
@@ -662,10 +662,11 @@ namespace EventStore.Core.Services.VNode {
 			if (_master == null)
 				throw new Exception("_master == null");
 			var master = message.ClusterInfo.Members.FirstOrDefault(x => x.InstanceId == _master.InstanceId);
+			
 			if (master == null || !master.IsAlive) {
 				Log.Debug("There is NO MASTER or MASTER is DEAD according to GOSSIP. Starting new elections. MASTER: [{0}].", _master);
 				_mainQueue.Publish(new ElectionMessage.StartElections());
-			} else if (CantBePartOfQuorumIfNonPromotable(message.OldClusterInfo, message.ClusterInfo)) {
+			} else if (CantBePartOfQuorumIfClone(message.OldClusterInfo, message.ClusterInfo)) {
 				Log.Debug("I'm a NonPromotableClone and I can't be part of the quorum. Starting new elections. MASTER: [{0}].", _master);
 				_mainQueue.Publish(new ElectionMessage.StartElections());
 			}
@@ -673,9 +674,7 @@ namespace EventStore.Core.Services.VNode {
 			_outputBus.Publish(message);
 		}
 
-		private bool CantBePartOfQuorumIfNonPromotable(ClusterInfo old, ClusterInfo current) {
-			if (_nodeInfo.IsPromotable)
-				return false;
+		private bool CantBePartOfQuorumIfClone(ClusterInfo old, ClusterInfo current) {
 			var previousCandidates = old.Members.Count(a =>
 				a.IsAlive && (a.State != VNodeState.Clone || a.State != VNodeState.NonPromotableClone) && a.InstanceId != _nodeInfo.InstanceId);
 			var currentCandidates = current.Members.Count(a =>
@@ -767,19 +766,19 @@ namespace EventStore.Core.Services.VNode {
 		private void Handle(ReplicationMessage.CloneAssignment message) {
 			if (IsLegitimateReplicationMessage(message)) {
 				_outputBus.Publish(message);
-				if (_nodeInfo.IsPromotable) {
+				if (_nodeInfo.IsClone) {
+					Log.Info("========== [{0}] (NON PROMOTABLE) CLONE ASSIGNMENT RECEIVED FROM [{1},{2},{3:B}].",
+						_nodeInfo.InternalHttp,
+						_master.InternalTcp, _master.InternalSecureTcp == null ? "n/a" : _master.InternalSecureTcp.ToString(),
+						message.MasterId);
+					_fsm.Handle(new SystemMessage.BecomeNonPromotableClone(_stateCorrelationId, _master));
+				} else {
 					Log.Info("========== [{internalHttp}] CLONE ASSIGNMENT RECEIVED FROM [{internalTcp},{internalSecureTcp},{masterId:B}].",
 						_nodeInfo.InternalHttp,
 						_master.InternalTcp,
 						_master.InternalSecureTcp == null ? "n/a" : _master.InternalSecureTcp.ToString(),
 						message.MasterId);
 					_fsm.Handle(new SystemMessage.BecomeClone(_stateCorrelationId, _master));
-				} else {
-					Log.Info("========== [{0}] (NON PROMOTABLE) CLONE ASSIGNMENT RECEIVED FROM [{1},{2},{3:B}].",
-						_nodeInfo.InternalHttp,
-						_master.InternalTcp, _master.InternalSecureTcp == null ? "n/a" : _master.InternalSecureTcp.ToString(),
-						message.MasterId);
-					_fsm.Handle(new SystemMessage.BecomeNonPromotableClone(_stateCorrelationId, _master));
 				}
 			}
 		}

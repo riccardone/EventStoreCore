@@ -189,7 +189,7 @@ namespace EventStore.Core.Services.Replication {
 			SendTcpMessage(_connection,
 				new ReplicationMessage.SubscribeReplica(
 					logPosition, chunk.ChunkHeader.ChunkId, epochs, _nodeInfo.InternalTcp,
-					message.MasterId, message.SubscriptionId, isPromotable: _nodeInfo.IsPromotable));
+					message.MasterId, message.SubscriptionId, isPromotable: !_nodeInfo.IsClone));
 		}
 
 		public void Handle(ReplicationMessage.AckLogPosition message) {

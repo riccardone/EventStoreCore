@@ -32,8 +32,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized {
 		public IRandTestFinishCondition FinishCondition;
 
 		private readonly List<ElectionsInstance> _instances = new List<ElectionsInstance>();
-
-		private readonly bool _isPromotable;
+		
 		private readonly bool _isClone;
 
 		public RandomizedElectionsTestCase(int maxIterCnt,
@@ -44,7 +43,6 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized {
 			int timerMinDelay,
 			int timerMaxDelay,
 			int? rndSeed = null,
-			bool isPromotable = true,
 			bool isClone = false) {
 			RndSeed = rndSeed ?? Math.Abs(Environment.TickCount);
 			Rnd = new Random(RndSeed);
@@ -56,7 +54,6 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized {
 			HttpMaxDelay = httpMaxDelay;
 			_timerMinDelay = timerMinDelay;
 			_timerMaxDelay = timerMaxDelay;
-			_isPromotable = isPromotable;
 			_isClone = isClone;
 
 			Runner = new RandomTestRunner(_maxIterCnt);
@@ -71,7 +68,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService.Randomized {
 				var outputBus = new InMemoryBus(string.Format("ELECTIONS-OUTPUT-BUS-{0}", i));
 				var endPoint = new IPEndPoint(BaseEndPoint.Address, BaseEndPoint.Port + i);
 				var nodeInfo = new VNodeInfo(Guid.NewGuid(), 0, endPoint, endPoint, endPoint, endPoint, endPoint,
-					endPoint, _isPromotable, _isClone);
+					endPoint, _isClone);
 				_instances.Add(new ElectionsInstance(nodeInfo.InstanceId, endPoint, inputBus, outputBus));
 
 				sendOverHttpHandler.RegisterEndPoint(endPoint, inputBus);

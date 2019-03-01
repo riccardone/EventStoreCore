@@ -135,13 +135,6 @@ namespace EventStore.Core.Services {
 			if (_state == ElectionsState.Shutdown) return;
 			if (_state == ElectionsState.ElectingLeader) return;
 
-			if (_nodeInfo.IsClone && !_nodeInfo.IsPromotable)
-				Log.Trace("ELECTIONS: THIS NODE IS A NON PROMOTABLE CLONE");
-
-			if (_nodeInfo.IsClone && _nodeInfo.IsPromotable) {
-				Log.Trace("ELECTIONS: THIS NODE IS A PROMOTABLE CLONE");
-			}
-
 			Log.Debug("ELECTIONS: STARTING ELECTIONS.");
 			ShiftToLeaderElection(_lastAttemptedView + 1);
 			_publisher.Publish(TimerMessage.Schedule.Create(SendViewChangeProofInterval,
@@ -228,7 +221,8 @@ namespace EventStore.Core.Services {
 				_publisherEnvelope,
 				new ElectionMessage.ElectionsTimedOut(_lastAttemptedView)));
 
-			if (AmILeaderOf(_lastAttemptedView)) {
+			if ((!_nodeInfo.IsClone || _servers.First(s => s.InstanceId.Equals(_nodeInfo.InstanceId)).State == VNodeState.Clone) 
+			    && AmILeaderOf(_lastAttemptedView)) {
 				Log.Debug(
 					"ELECTIONS: (IV={installedView}) VIEWCHANGEPROOF FROM [{serverInternalHttp}, {serverId:B}]. JUMPING TO LEADER STATE.",
 					message.InstalledView, message.ServerInternalHttp, message.ServerId);
@@ -271,8 +265,8 @@ namespace EventStore.Core.Services {
 			if (_state == ElectionsState.ElectingLeader) // install the view
 				ShiftToRegNonLeader();
 
-			if (_nodeInfo.IsClone && !_nodeInfo.IsPromotable) {
-				Log.Info("ELECTIONS: I'm a NON PROMOTABLE CLONE and I can't be a candidate [{0}]", message.ServerInternalHttp);
+			if (_nodeInfo.IsClone) {
+				//Log.Info("ELECTIONS: I'm a NON PROMOTABLE CLONE and I can't be a candidate [{0}]", message.ServerInternalHttp);
 				_publisher.Publish(CreatePrepareKo(message.View));
 			}
 			else {
@@ -299,8 +293,8 @@ namespace EventStore.Core.Services {
 		private void ShiftToRegNonLeader() {
 			Log.Debug("ELECTIONS: (V={lastAttemptedView}) SHIFT TO REG_NONLEADER.", _lastAttemptedView);
 
-			// If I'm a NPC I can't set my state as leader and send proposals
-			if (_nodeInfo.IsClone && !_nodeInfo.IsPromotable)
+			// If I'm a Clone I can't set my state as leader and send proposals
+			if (_nodeInfo.IsClone)
 				return;
 
 			_state = ElectionsState.NonLeader;

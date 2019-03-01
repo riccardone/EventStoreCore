@@ -15,10 +15,10 @@ namespace EventStore.Core.Tests.Services.ElectionsService {
 		private const int StartingPort = 1002;
 
 		private static ClusterVNodeSettings CreateVNode(int nodeNumber) {
-			return CreateVNode(nodeNumber, Opts.IsPromotableCloneDefault);
+			return CreateVNode(nodeNumber);
 		}
 
-		private static ClusterVNodeSettings CreateVNode(int nodeNumber, bool isPromotable) {
+		private static ClusterVNodeSettings CreateVNode(int nodeNumber, bool isClone) {
 			int tcpIntPort = StartingPort + nodeNumber * 2,
 				tcpExtPort = tcpIntPort + 1,
 				httpIntPort = tcpIntPort + 10,
@@ -51,7 +51,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService {
 				Opts.UnsafeIgnoreHardDeleteDefault, Opts.BetterOrderingDefault, Opts.ReaderThreadsCountDefault,
 				Opts.AlwaysKeepScavengedDefault, Opts.GossipOnSingleNodeDefault, Opts.SkipIndexScanOnReadsDefault,
 				Opts.ReduceFileCachePressureDefault, Opts.InitializationThreadsDefault, Opts.FaultOutOfOrderProjectionsDefault,
-				Opts.StructuredLogDefault, Opts.MaxAutoMergeIndexLevelDefault, isPromotable);
+				Opts.StructuredLogDefault, Opts.MaxAutoMergeIndexLevelDefault, isClone);
 
 			return vnode;
 		}
@@ -84,7 +84,7 @@ namespace EventStore.Core.Tests.Services.ElectionsService {
 
 			var nodes = new List<ClusterVNodeSettings>();
 			for (var i = 0; i < nodesCount; i++) {
-				nodes.Add(i == selfIndex ? CreateVNode(i, false) : CreateVNode(i));
+				nodes.Add(i == selfIndex ? CreateVNode(i, true) : CreateVNode(i));
 			}
 
 			var self = nodes[selfIndex];
