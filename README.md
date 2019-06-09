@@ -1,55 +1,33 @@
-# Event Store
+# Event Store (on .net core)
 
 The open-source, functional database with Complex Event Processing in JavaScript.
 
 This is the repository for the open source version of Event Store, which includes the clustering implementation for high availability. 
 
-## Support
+## Support  
+  
+This fork is only for running Event Store on .net Core for development and testing purposes. It's not commercially supported and it is not intended to be used in production.  
 
-Information on commercial support and options such as LDAP authentication can be found on the Event Store website at https://eventstore.org/support.
-
-## CI Status
-[![Build Status](https://dev.azure.com/EventStoreOSS/EventStore/_apis/build/status/EventStore.EventStore?branchName=master)](https://dev.azure.com/EventStoreOSS/EventStore/_build/latest?definitionId=2)
+Information on commercial support and options such as LDAP authentication can be found on the Event Store website at https://eventstore.org/support.  
 
 ## Documentation
-Documentation for Event Store can be found [here](https://eventstore.org/docs/)
-
-## Community
-We have a fairly active [google groups list](https://groups.google.com/forum/#!forum/event-store). If you prefer slack, there is also an #eventstore channel [here](http://ddd-cqrs-es.herokuapp.com/).
-
-## Release Packages
-The latest release packages are hosted in the downloads section on the [Event Store Website](https://eventstore.org/downloads/)
-
-We also host native packages for Linux on [Package Cloud](https://packagecloud.io/EventStore/EventStore-OSS) and Windows packages can be installed via [Chocolatey](https://chocolatey.org/packages/eventstore-oss) (4.0.0 onwards only).
-
+Documentation for Event Store can be found [here](https://eventstore.org/docs/)  
+  
 ## Building Event Store
 
-Event Store is written in a mixture of C#, C++ and JavaScript. It can run either on Mono or .NET, however because it contains platform specific code (including hosting the V8 JavaScript engine), it must be built for the platform on which you intend to run it.
+Event Store is written in a mixture of C#, C++ and JavaScript. The version in this fork can run on .NET Core v2.2+.
 
 ### Linux
 **Prerequisites**
-- [Mono 5.16.0](https://www.mono-project.com/download/)
-- [.NET Core SDK 2.1.402](https://www.microsoft.com/net/download)
-
-**Required Environment Variables**
-```
-export FrameworkPathOverride=/usr/lib/mono/4.7.1-api
-```
+- [.NET Core SDK 2.2](https://www.microsoft.com/net/download)
 
 ### Windows
 **Prerequisites**
-- [.NET Framework 4.7.1 (Developer Pack)](https://www.microsoft.com/net/download)
-- [.NET Core SDK 2.1.402](https://www.microsoft.com/net/download)
+- [.NET Core SDK 2.2](https://www.microsoft.com/net/download)
 
 ### Mac OS X
 **Prerequisites**
-- [Mono 5.16.0](https://www.mono-project.com/download/)
-- [.NET Core SDK 2.1.402](https://www.microsoft.com/net/download)
-
-**Required Environment Variables**
-```
-export FrameworkPathOverride=/Library/Frameworks/Mono.framework/Versions/5.16.0/lib/mono/4.7.1-api/
-```
+- [.NET Core SDK 2.2](https://www.microsoft.com/net/download)
 
 ### Build EventStore
 Once you've installed the prerequisites for your system, you can launch a `Release` build of EventStore as follows:
@@ -59,12 +37,8 @@ dotnet build -c Release src/EventStore.sln
 
 To start a single node, you can then run:
 ```
-bin/Release/EventStore.ClusterNode/net471/EventStore.ClusterNode.exe --db ../db --log ../logs
+bin/Release/EventStore.ClusterNode/netcoreapp2.2/dotnet EventStore.ClusterNode.dll --db ../db --log ../logs
 ```
-
-You'll need to launch the node with `mono` on Linux or Mac OS X.
-
-_Note: The build system has changed after version `4.1.1-hotfix1`, therefore the above instructions will not work for old releases._
 
 ### Running the tests
 You can launch the tests as follows:
@@ -101,11 +75,3 @@ The list of precompiled projections libraries can be found in `src/libs/x64`. If
 - [Linux](scripts/build-js1/build-js1-linux/README.md)
 - [Windows](scripts/build-js1/build-js1-win/build-js1-win-instructions.md)
 - [Mac OS X](scripts/build-js1/build-js1-mac/build-js1-mac.sh)
-
-## Contributing
-
-Development is done on the `master` branch.
-We attempt to do our best to ensure that the history remains clean and to do so, we generally ask contributors to squash their commits into a set or single logical commit.
-
-If you want to switch to a particular release, you can check out the tag for this particular version. For example:  
-`git checkout oss-v4.1.0`
