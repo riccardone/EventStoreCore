@@ -1,8 +1,11 @@
-# Event Store (on .net core)
+# Event Store (on .net core)  
 
 The open-source, functional database with Complex Event Processing in JavaScript.
 
 This is the repository for the open source version of Event Store, which includes the clustering implementation for high availability. 
+  
+## Releases (.net Core)
+You can download releases from https://github.com/riccardone/EventStore/releases  
 
 ## Support  
   
