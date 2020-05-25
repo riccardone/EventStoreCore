@@ -49,7 +49,7 @@ namespace EventStore.Common.Utils {
 							throw new Exception(string.Format("FlushFileBuffers failed with err: {0}",
 								Marshal.GetLastWin32Error()));
 					};
-				} catch (Exception exc) {
+				} catch (Exception) {
 					//Log.ErrorException(exc, "Error while compiling sneaky SafeFileHandle getter.");
 					FlushSafe = f => f.Flush(flushToDisk: true);
 				}
