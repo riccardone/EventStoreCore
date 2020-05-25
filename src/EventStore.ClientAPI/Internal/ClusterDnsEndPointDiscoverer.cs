@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Utils;
 using EventStore.ClientAPI.Exceptions;
 using EventStore.ClientAPI.Messages;
@@ -19,7 +18,7 @@ namespace EventStore.ClientAPI.Internal {
 		private readonly int _managerExternalHttpPort;
 		private readonly GossipSeed[] _gossipSeeds;
 
-		private readonly HttpAsyncClient _client;
+		private readonly IHttpClient _client;
 		private ClusterMessages.MemberInfoDto[] _oldGossip;
 		private TimeSpan _gossipTimeout;
 
@@ -31,7 +30,8 @@ namespace EventStore.ClientAPI.Internal {
 			int managerExternalHttpPort,
 			GossipSeed[] gossipSeeds,
 			TimeSpan gossipTimeout,
-			NodePreference nodePreference) {
+			NodePreference nodePreference,
+			IHttpClient client = null) {
 			Ensure.NotNull(log, "log");
 
 			_log = log;
@@ -40,7 +40,7 @@ namespace EventStore.ClientAPI.Internal {
 			_managerExternalHttpPort = managerExternalHttpPort;
 			_gossipSeeds = gossipSeeds;
 			_gossipTimeout = gossipTimeout;
-			_client = new HttpAsyncClient(_gossipTimeout);
+			_client = client ?? new HttpAsyncClient(_gossipTimeout);
 			_nodePreference = nodePreference;
 		}
 
@@ -170,13 +170,13 @@ namespace EventStore.ClientAPI.Internal {
 			ClusterMessages.ClusterInfoDto result = null;
 			var completed = new ManualResetEventSlim(false);
 
-			var url = endPoint.EndPoint.ToHttpUrl(EndpointExtensions.HTTP_SCHEMA, "/gossip?format=json");
+			var url = endPoint.EndPoint.ToHttpUrl(endPoint.SeedOverTls ? EndpointExtensions.HTTPS_SCHEMA : EndpointExtensions.HTTP_SCHEMA, "/gossip?format=json");
 			_client.Get(
 				url,
 				null,
 				response => {
 					if (response.HttpStatusCode != HttpStatusCode.OK) {
-						//_log.Info("[{0}] responded with {1} ({2})", endPoint, response.HttpStatusCode, response.StatusDescription);
+						_log.Info("[{0}] responded with {1} ({2})", endPoint, response.HttpStatusCode, response.StatusDescription);
 						completed.Set();
 						return;
 					}
@@ -184,14 +184,18 @@ namespace EventStore.ClientAPI.Internal {
 					try {
 						result = response.Body.ParseJson<ClusterMessages.ClusterInfoDto>();
 						//_log.Debug("ClusterDnsEndPointDiscoverer: Got gossip from [{0}]:\n{1}.", endPoint, string.Join("\n", result.Members.Select(x => x.ToString())));
-					} catch (Exception) {
-						//_log.Info("Failed to get cluster info from [{0}]: deserialization error: {1}.", endPoint, e.Message);
+					} catch (Exception e) {
+						if (e is AggregateException ae)
+							e = ae.Flatten();
+						_log.Error("Failed to get cluster info from [{0}]: deserialization error: {1}.", endPoint, e);
 					}
 
 					completed.Set();
 				},
 				e => {
-					//_log.Info("Failed to get cluster info from [{0}]: request failed, error: {1}.", endPoint, e.Message);
+					if (e is AggregateException ae)
+						e = ae.Flatten();
+					_log.Error("Failed to get cluster info from [{0}]: request failed, error: {1}.", endPoint, e);
 					completed.Set();
 				}, endPoint.HostHeader);
 
@@ -217,10 +221,19 @@ namespace EventStore.ClientAPI.Internal {
 					RandomShuffle(nodes, 0, nodes.Length - 1);
 					break;
 				case NodePreference.Slave:
-					nodes = nodes.OrderBy(nodeEntry => nodeEntry.State != ClusterMessages.VNodeState.Slave)
+					nodes = nodes.OrderBy(nodeEntry => 
+							nodeEntry.State != ClusterMessages.VNodeState.Follower &&
+							 nodeEntry.State != ClusterMessages.VNodeState.Slave)
 						.ToArray(); // OrderBy is a stable sort and only affects order of matching entries
 					RandomShuffle(nodes, 0,
-						nodes.Count(nodeEntry => nodeEntry.State == ClusterMessages.VNodeState.Slave) - 1);
+						nodes.Count(nodeEntry => nodeEntry.State == ClusterMessages.VNodeState.Follower ||
+						                          nodeEntry.State == ClusterMessages.VNodeState.Slave) - 1);
+					break;
+				case NodePreference.ReadOnlyReplica:
+					nodes = nodes.OrderBy(nodeEntry => !IsReadOnlyReplicaState(nodeEntry.State))
+						.ToArray(); // OrderBy is a stable sort and only affects order of matching entries
+					RandomShuffle(nodes, 0,
+						nodes.Count(nodeEntry => IsReadOnlyReplicaState(nodeEntry.State)) - 1);
 					break;
 			}
 
@@ -238,6 +251,12 @@ namespace EventStore.ClientAPI.Internal {
 			_log.Info("Discovering: found best choice [{0},{1}] ({2}).", normTcp,
 				secTcp == null ? "n/a" : secTcp.ToString(), node.State);
 			return new NodeEndPoints(normTcp, secTcp);
+		}
+		
+		private bool IsReadOnlyReplicaState(ClusterMessages.VNodeState state) {
+			return state == ClusterMessages.VNodeState.ReadOnlyLeaderless
+			       || state == ClusterMessages.VNodeState.PreReadOnlyReplica
+			       || state == ClusterMessages.VNodeState.ReadOnlyReplica;
 		}
 	}
 }

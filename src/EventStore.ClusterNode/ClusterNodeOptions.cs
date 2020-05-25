@@ -98,7 +98,9 @@ namespace EventStore.ClusterNode {
 
 		[ArgDescription(Opts.ConnectionPendingSendBytesThresholdDescr, Opts.InterfacesGroup)]
 		public int ConnectionPendingSendBytesThreshold { get; set; }
-
+		
+		[ArgDescription(Opts.ConnectionQueueSizeThresholdDescr, Opts.InterfacesGroup)]
+		public int ConnectionQueueSizeThreshold { get; set; }
 
 		[ArgDescription(Opts.ForceDescr, Opts.AppGroup)]
 		public bool Force { get; set; }
@@ -248,6 +250,9 @@ namespace EventStore.ClusterNode {
 		[ArgDescription(Opts.AuthenticationConfigFileDescr, Opts.AuthGroup)]
 		public string AuthenticationConfig { get; set; }
 
+		[ArgDescription(Opts.DisableFirstLevelHttpAuthorizationDescr, Opts.AuthGroup)]
+		public bool DisableFirstLevelHttpAuthorization { get; set; }
+
 		[ArgDescription(Opts.PrepareTimeoutMsDescr, Opts.DbGroup)]
 		public int PrepareTimeoutMs { get; set; }
 
@@ -286,6 +291,9 @@ namespace EventStore.ClusterNode {
 
 		[ArgDescription(Opts.LogHttpRequestsDescr, Opts.AppGroup)]
 		public bool LogHttpRequests { get; set; }
+		
+		[ArgDescription(Opts.LogFailedAuthenticationAttemptsDescr, Opts.AppGroup)]
+		public bool LogFailedAuthenticationAttempts { get; set; }
 
 		[ArgDescription(Opts.AlwaysKeepScavengedDescr, Opts.DbGroup)]
 		public bool AlwaysKeepScavenged { get; set; }
@@ -304,6 +312,9 @@ namespace EventStore.ClusterNode {
 
 		[ArgDescription(Opts.MaxAutoMergeIndexLevelDescr, Opts.DbGroup)]
 		public int MaxAutoMergeIndexLevel { get; set; }
+
+		[ArgDescription(Opts.WriteStatsToDbDescr, Opts.DbGroup)]
+		public bool WriteStatsToDb { get; set; }
 
 		public ClusterNodeOptions() {
 			Config = "";
@@ -390,6 +401,7 @@ namespace EventStore.ClusterNode {
 
 			AuthenticationType = Opts.AuthenticationTypeDefault;
 			AuthenticationConfig = Opts.AuthenticationConfigFileDefault;
+			DisableFirstLevelHttpAuthorization = Opts.DisableFirstLevelHttpAuthorizationDefault;
 
 			UnsafeIgnoreHardDelete = Opts.UnsafeIgnoreHardDeleteDefault;
 			UnsafeDisableFlushToDisk = Opts.UnsafeDisableFlushToDiskDefault;
@@ -412,6 +424,7 @@ namespace EventStore.ClusterNode {
 			StartStandardProjections = Opts.StartStandardProjectionsDefault;
 			DisableHTTPCaching = Opts.DisableHttpCachingDefault;
 			LogHttpRequests = Opts.LogHttpRequestsDefault;
+			LogFailedAuthenticationAttempts = Opts.LogFailedAuthenticationAttemptsDefault;
 
 			Unbuffered = Opts.UnbufferedDefault;
 			WriteThrough = Opts.WriteThroughDefault;
@@ -424,9 +437,12 @@ namespace EventStore.ClusterNode {
 			StructuredLog = Opts.StructuredLogDefault;
 
 			ConnectionPendingSendBytesThreshold = Opts.ConnectionPendingSendBytesThresholdDefault;
+			ConnectionQueueSizeThreshold = Opts.ConnectionQueueSizeThresholdDefault;
 			ChunkInitialReaderCount = Opts.ChunkInitialReaderCountDefault;
 
 			MaxAutoMergeIndexLevel = Opts.MaxAutoMergeIndexLevelDefault;
+
+			WriteStatsToDb = Opts.WriteStatsToDbDefault;
 		}
 	}
 }

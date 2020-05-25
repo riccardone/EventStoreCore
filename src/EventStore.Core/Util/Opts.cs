@@ -12,7 +12,7 @@ namespace EventStore.Core.Util {
 		public const string AppGroup = "Application Options";
 		public const string DbGroup = "Database Options";
 		public const string ProjectionsGroup = "Projections Options";
-		public const string AuthGroup = "Authentication Options";
+		public const string AuthGroup = "Authentication/Authorization Options";
 		public const string InterfacesGroup = "Interface Options";
 		public const string CertificatesGroup = "Certificate Options";
 		public const string ClusterGroup = "Cluster Options";
@@ -72,6 +72,11 @@ namespace EventStore.Core.Util {
 			"The maximum number of pending send bytes allowed before a connection is closed.";
 
 		public const int ConnectionPendingSendBytesThresholdDefault = 10 * 1024 * 1024;
+		
+		public const string ConnectionQueueSizeThresholdDescr =
+			"The maximum number of pending connection operations allowed before a connection is closed.";
+
+		public const int ConnectionQueueSizeThresholdDefault = 50000;
 
 		public const string GossipOnSingleNodeDescr =
 			"When enabled tells a single node to run gossip as if it is a cluster";
@@ -189,6 +194,9 @@ namespace EventStore.Core.Util {
 
 		public const string LogHttpRequestsDescr = "Log Http Requests and Responses before processing them.";
 		public static readonly bool LogHttpRequestsDefault = false;
+		
+		public const string LogFailedAuthenticationAttemptsDescr = "Log the failed authentication attempts.";
+		public static readonly bool LogFailedAuthenticationAttemptsDefault = false;
 
 		public const string SkipIndexScanOnReadsDescr =
 			"Skip Index Scan on Reads. This skips the index scan which was used to stop reading duplicates.";
@@ -400,7 +408,7 @@ namespace EventStore.Core.Util {
 		public static readonly bool OptimizeIndexMergeDefault = false;
 
 		/*
-		 * Authentication Options
+		 * Authentication/Authorization Options
 		 */
 		public const string AuthenticationTypeDescr = "The type of authentication to use.";
 		public static readonly string AuthenticationTypeDefault = "internal";
@@ -410,6 +418,9 @@ namespace EventStore.Core.Util {
 
 		public static readonly string AuthenticationConfigFileDefault = string.Empty;
 
+		public const string DisableFirstLevelHttpAuthorizationDescr = "Disables first level authorization checks on all HTTP endpoints. This option can be enabled for backwards compatibility with EventStore 5.0.1 or earlier.";
+		public static readonly bool DisableFirstLevelHttpAuthorizationDefault = false;
+
 		/*
 		 * Scavenge options
 		 */
@@ -417,5 +428,8 @@ namespace EventStore.Core.Util {
 			"During large Index Merge operations, writes may be slowed down. Set this to the maximum index file level for which automatic merges should happen.  Merging indexes above this level should be done manually.";
 
 		public static readonly int MaxAutoMergeIndexLevelDefault = int.MaxValue;
+
+		public const string WriteStatsToDbDescr = "Set this option to write statistics to the database.";
+		public const bool WriteStatsToDbDefault = true;
 	}
 }

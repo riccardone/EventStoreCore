@@ -75,6 +75,8 @@ namespace EventStore.Core {
 		protected StatsStorage _statsStorage;
 
 		protected IAuthenticationProviderFactory _authenticationProviderFactory;
+		protected bool _disableFirstLevelHttpAuthorization;
+		protected bool _logFailedAuthenticationAttempts;
 		protected bool _disableScavengeMerging;
 		protected int _scavengeHistoryMaxAge;
 		protected bool _adminOnPublic;
@@ -90,6 +92,7 @@ namespace EventStore.Core {
 		protected TimeSpan _extTcpHeartbeatTimeout;
 		protected TimeSpan _extTcpHeartbeatInterval;
 		protected int _connectionPendingSendBytesThreshold;
+		protected int _connectionQueueSizeThreshold;
 
 		protected bool _skipVerifyDbHashes;
 		protected int _maxMemtableSize;
@@ -186,6 +189,7 @@ namespace EventStore.Core {
 			_statsPeriod = TimeSpan.FromSeconds(Opts.StatsPeriodDefault);
 
 			_authenticationProviderFactory = new InternalAuthenticationProviderFactory();
+			_disableFirstLevelHttpAuthorization = Opts.DisableFirstLevelHttpAuthorizationDefault;
 			_disableScavengeMerging = Opts.DisableScavengeMergeDefault;
 			_scavengeHistoryMaxAge = Opts.ScavengeHistoryMaxAgeDefault;
 			_adminOnPublic = Opts.AdminOnExtDefault;
@@ -200,6 +204,7 @@ namespace EventStore.Core {
 			_extTcpHeartbeatInterval = TimeSpan.FromMilliseconds(Opts.ExtTcpHeartbeatIntervalDefault);
 			_extTcpHeartbeatTimeout = TimeSpan.FromMilliseconds(Opts.ExtTcpHeartbeatTimeoutDefault);
 			_connectionPendingSendBytesThreshold = Opts.ConnectionPendingSendBytesThresholdDefault;
+			_connectionQueueSizeThreshold = Opts.ConnectionQueueSizeThresholdDefault;
 
 			_skipVerifyDbHashes = Opts.SkipDbVerifyDefault;
 			_maxMemtableSize = Opts.MaxMemtableSizeDefault;
@@ -209,6 +214,7 @@ namespace EventStore.Core {
 			_startStandardProjections = Opts.StartStandardProjectionsDefault;
 			_disableHTTPCaching = Opts.DisableHttpCachingDefault;
 			_logHttpRequests = Opts.LogHttpRequestsDefault;
+			_logFailedAuthenticationAttempts = Opts.LogFailedAuthenticationAttemptsDefault;
 			_enableHistograms = Opts.LogHttpRequestsDefault;
 			_index = null;
 			_skipIndexVerify = Opts.SkipIndexVerifyDefault;
@@ -741,6 +747,16 @@ namespace EventStore.Core {
 			_connectionPendingSendBytesThreshold = connectionPendingSendBytesThreshold;
 			return this;
 		}
+		
+		/// <summary>
+		/// Sets the maximum number of connection operations allowed before a connection is closed.
+		/// </summary>
+		/// <param name="connectionQueueSizeThreshold">The number of connection operations allowed</param>
+		/// <returns>A <see cref="VNodeBuilder"/> with the options set</returns>
+		public VNodeBuilder WithConnectionQueueSizeThreshold(int connectionQueueSizeThreshold) {
+			_connectionQueueSizeThreshold = connectionQueueSizeThreshold;
+			return this;
+		}
 
 		/// <summary>
 		/// Sets the gossip interval
@@ -891,6 +907,15 @@ namespace EventStore.Core {
 			_logHttpRequests = true;
 			return this;
 		}
+		
+		/// <summary>
+		/// Enable logging of Failed Authentication Attempts
+		/// </summary>
+		/// <returns>A <see cref="VNodeBuilder"/> with the options set</returns>
+		public VNodeBuilder EnableLoggingOfFailedAuthenticationAttempts() {
+			_logFailedAuthenticationAttempts = true;
+			return this;
+		}
 
 		/// <summary>
 		/// Enable the tracking of various histograms in the backend, typically only used for debugging
@@ -974,6 +999,16 @@ namespace EventStore.Core {
 		/// <returns>A <see cref="VNodeBuilder"/> with the options set</returns>
 		public VNodeBuilder WithAuthenticationProvider(IAuthenticationProviderFactory authenticationProviderFactory) {
 			_authenticationProviderFactory = authenticationProviderFactory;
+			return this;
+		}
+
+		/// <summary>
+		/// Disables first level authorization checks on all HTTP endpoints.
+		/// </summary>
+		/// <returns>A <see cref="VNodeBuilder"/> with the options set</returns>
+		public VNodeBuilder DisableFirstLevelHttpAuthorization()
+		{
+			_disableFirstLevelHttpAuthorization = true;
 			return this;
 		}
 
@@ -1362,6 +1397,7 @@ namespace EventStore.Core {
 				_disableHTTPCaching,
 				_logHttpRequests,
 				_connectionPendingSendBytesThreshold,
+				_connectionQueueSizeThreshold,
 				_chunkInitialReaderCount,
 				_index,
 				_enableHistograms,
@@ -1380,7 +1416,9 @@ namespace EventStore.Core {
 				_initializationThreads,
 				_faultOutOfOrderProjections,
 				_structuredLog,
-				_maxAutoMergeIndexLevel);
+				_maxAutoMergeIndexLevel,
+				_disableFirstLevelHttpAuthorization,
+				_logFailedAuthenticationAttempts);
 
 			var infoController = new InfoController(options, _projectionType);
 

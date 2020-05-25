@@ -22,6 +22,7 @@ namespace EventStore.Core.Cluster.Settings {
 		public readonly bool StartStandardProjections;
 		public readonly bool DisableHTTPCaching;
 		public readonly bool LogHttpRequests;
+		public readonly bool LogFailedAuthenticationAttempts;
 
 		public readonly bool DiscoverViaDns;
 		public readonly string ClusterDns;
@@ -46,6 +47,7 @@ namespace EventStore.Core.Cluster.Settings {
 		public readonly StatsStorage StatsStorage;
 
 		public readonly IAuthenticationProviderFactory AuthenticationProviderFactory;
+		public readonly bool DisableFirstLevelHttpAuthorization;
 		public readonly bool DisableScavengeMerging;
 		public readonly int ScavengeHistoryMaxAge;
 		public bool AdminOnPublic;
@@ -59,6 +61,7 @@ namespace EventStore.Core.Cluster.Settings {
 		public readonly TimeSpan ExtTcpHeartbeatTimeout;
 		public readonly TimeSpan ExtTcpHeartbeatInterval;
 		public readonly int ConnectionPendingSendBytesThreshold;
+		public readonly int ConnectionQueueSizeThreshold;
 		public readonly bool UnsafeIgnoreHardDeletes;
 		public readonly bool VerifyDbHash;
 		public readonly int MaxMemtableEntryCount;
@@ -132,6 +135,7 @@ namespace EventStore.Core.Cluster.Settings {
 			bool disableHTTPCaching,
 			bool logHttpRequests,
 			int connectionPendingSendBytesThreshold,
+			int connectionQueueSizeThreshold,
 			int chunkInitialReaderCount,
 			string index = null, bool enableHistograms = false,
 			bool skipIndexVerify = false,
@@ -149,7 +153,9 @@ namespace EventStore.Core.Cluster.Settings {
 			int initializationThreads = 1,
 			bool faultOutOfOrderProjections = false,
 			bool structuredLog = false,
-			int maxAutoMergeIndexLevel = 1000) {
+			int maxAutoMergeIndexLevel = 1000,
+			bool disableFirstLevelHttpAuthorization = false,
+			bool logFailedAuthenticationAttempts = false) {
 			Ensure.NotEmptyGuid(instanceId, "instanceId");
 			Ensure.NotNull(internalTcpEndPoint, "internalTcpEndPoint");
 			Ensure.NotNull(externalTcpEndPoint, "externalTcpEndPoint");
@@ -188,6 +194,7 @@ namespace EventStore.Core.Cluster.Settings {
 			StartStandardProjections = startStandardProjections;
 			DisableHTTPCaching = disableHTTPCaching;
 			LogHttpRequests = logHttpRequests;
+			LogFailedAuthenticationAttempts = logFailedAuthenticationAttempts;
 			AdditionalConsumerStrategies =
 				additionalConsumerStrategies ?? new IPersistentSubscriptionConsumerStrategyFactory[0];
 
@@ -212,6 +219,7 @@ namespace EventStore.Core.Cluster.Settings {
 			StatsStorage = statsStorage;
 
 			AuthenticationProviderFactory = authenticationProviderFactory;
+			DisableFirstLevelHttpAuthorization = disableFirstLevelHttpAuthorization;
 
 			NodePriority = nodePriority;
 			DisableScavengeMerging = disableScavengeMerging;
@@ -227,6 +235,7 @@ namespace EventStore.Core.Cluster.Settings {
 			ExtTcpHeartbeatTimeout = extTcpHeartbeatTimeout;
 			ExtTcpHeartbeatInterval = extTcpHeartbeatInterval;
 			ConnectionPendingSendBytesThreshold = connectionPendingSendBytesThreshold;
+			ConnectionQueueSizeThreshold = connectionQueueSizeThreshold;
 			ChunkInitialReaderCount = chunkInitialReaderCount;
 
 			VerifyDbHash = verifyDbHash;
@@ -250,7 +259,6 @@ namespace EventStore.Core.Cluster.Settings {
 			FaultOutOfOrderProjections = faultOutOfOrderProjections;
 			StructuredLog = structuredLog;
 		}
-
 
 		public override string ToString() {
 			return string.Format("InstanceId: {0}\n"
@@ -293,7 +301,8 @@ namespace EventStore.Core.Cluster.Settings {
 			                     + "ChunkInitialReaderCount: {37}\n"
 			                     + "ReduceFileCachePressure: {38}\n"
 			                     + "InitializationThreads: {39}\n"
-			                     + "StructuredLog: {40}\n",
+			                     + "StructuredLog: {40}\n"
+								 + "DisableFirstLevelHttpAuthorization: {41}\n",
 				NodeInfo.InstanceId,
 				NodeInfo.InternalTcp, NodeInfo.InternalSecureTcp,
 				NodeInfo.ExternalTcp, NodeInfo.ExternalSecureTcp,
@@ -312,7 +321,8 @@ namespace EventStore.Core.Cluster.Settings {
 				NodePriority, GossipInterval, GossipAllowedTimeDifference, GossipTimeout,
 				EnableHistograms, DisableHTTPCaching, Index, ScavengeHistoryMaxAge,
 				ConnectionPendingSendBytesThreshold, ChunkInitialReaderCount,
-				ReduceFileCachePressure, InitializationThreads, StructuredLog);
+				ReduceFileCachePressure, InitializationThreads, StructuredLog,
+				DisableFirstLevelHttpAuthorization);
 		}
 	}
 }

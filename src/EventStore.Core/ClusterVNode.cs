@@ -281,7 +281,7 @@ namespace EventStore.Core {
 			// AUTHENTICATION INFRASTRUCTURE - delegate to plugins
 			_internalAuthenticationProvider =
 				vNodeSettings.AuthenticationProviderFactory.BuildAuthenticationProvider(_mainQueue, _mainBus,
-					_workersHandler, _workerBuses);
+					_workersHandler, _workerBuses, vNodeSettings.LogFailedAuthenticationAttempts);
 
 			Ensure.NotNull(_internalAuthenticationProvider, "authenticationProvider");
 
@@ -291,7 +291,8 @@ namespace EventStore.Core {
 					var extTcpService = new TcpService(_mainQueue, _nodeInfo.ExternalTcp, _workersHandler,
 						TcpServiceType.External, TcpSecurityType.Normal, new ClientTcpDispatcher(),
 						vNodeSettings.ExtTcpHeartbeatInterval, vNodeSettings.ExtTcpHeartbeatTimeout,
-						_internalAuthenticationProvider, null, vNodeSettings.ConnectionPendingSendBytesThreshold);
+						_internalAuthenticationProvider, null, vNodeSettings.ConnectionPendingSendBytesThreshold,
+						vNodeSettings.ConnectionQueueSizeThreshold);
 					_mainBus.Subscribe<SystemMessage.SystemInit>(extTcpService);
 					_mainBus.Subscribe<SystemMessage.SystemStart>(extTcpService);
 					_mainBus.Subscribe<SystemMessage.BecomeShuttingDown>(extTcpService);
@@ -303,7 +304,7 @@ namespace EventStore.Core {
 						TcpServiceType.External, TcpSecurityType.Secure, new ClientTcpDispatcher(),
 						vNodeSettings.ExtTcpHeartbeatInterval, vNodeSettings.ExtTcpHeartbeatTimeout,
 						_internalAuthenticationProvider, vNodeSettings.Certificate,
-						vNodeSettings.ConnectionPendingSendBytesThreshold);
+						vNodeSettings.ConnectionPendingSendBytesThreshold, vNodeSettings.ConnectionQueueSizeThreshold);
 					_mainBus.Subscribe<SystemMessage.SystemInit>(extSecTcpService);
 					_mainBus.Subscribe<SystemMessage.SystemStart>(extSecTcpService);
 					_mainBus.Subscribe<SystemMessage.BecomeShuttingDown>(extSecTcpService);
@@ -316,7 +317,8 @@ namespace EventStore.Core {
 							TcpServiceType.Internal, TcpSecurityType.Normal,
 							new InternalTcpDispatcher(),
 							vNodeSettings.IntTcpHeartbeatInterval, vNodeSettings.IntTcpHeartbeatTimeout,
-							_internalAuthenticationProvider, null, ESConsts.UnrestrictedPendingSendBytes);
+							_internalAuthenticationProvider, null, ESConsts.UnrestrictedPendingSendBytes,
+							ESConsts.MaxConnectionQueueSize);
 						_mainBus.Subscribe<SystemMessage.SystemInit>(intTcpService);
 						_mainBus.Subscribe<SystemMessage.SystemStart>(intTcpService);
 						_mainBus.Subscribe<SystemMessage.BecomeShuttingDown>(intTcpService);
@@ -329,7 +331,8 @@ namespace EventStore.Core {
 							new InternalTcpDispatcher(),
 							vNodeSettings.IntTcpHeartbeatInterval, vNodeSettings.IntTcpHeartbeatTimeout,
 							_internalAuthenticationProvider, vNodeSettings.Certificate,
-							ESConsts.UnrestrictedPendingSendBytes);
+							ESConsts.UnrestrictedPendingSendBytes,
+							ESConsts.MaxConnectionQueueSize);
 						_mainBus.Subscribe<SystemMessage.SystemInit>(intSecTcpService);
 						_mainBus.Subscribe<SystemMessage.SystemStart>(intSecTcpService);
 						_mainBus.Subscribe<SystemMessage.BecomeShuttingDown>(intSecTcpService);
@@ -383,7 +386,7 @@ namespace EventStore.Core {
 			// EXTERNAL HTTP
 			_externalHttpService = new HttpService(ServiceAccessibility.Public, _mainQueue, new TrieUriRouter(),
 				_workersHandler, vNodeSettings.LogHttpRequests, vNodeSettings.GossipAdvertiseInfo.AdvertiseExternalIPAs,
-				vNodeSettings.GossipAdvertiseInfo.AdvertiseExternalHttpPortAs, vNodeSettings.ExtHttpPrefixes);
+				vNodeSettings.GossipAdvertiseInfo.AdvertiseExternalHttpPortAs, vNodeSettings.DisableFirstLevelHttpAuthorization, vNodeSettings.ExtHttpPrefixes);
 			_externalHttpService.SetupController(persistentSubscriptionController);
 			if (vNodeSettings.AdminOnPublic)
 				_externalHttpService.SetupController(adminController);
@@ -404,7 +407,7 @@ namespace EventStore.Core {
 				_internalHttpService = new HttpService(ServiceAccessibility.Private, _mainQueue, new TrieUriRouter(),
 					_workersHandler, vNodeSettings.LogHttpRequests,
 					vNodeSettings.GossipAdvertiseInfo.AdvertiseInternalIPAs,
-					vNodeSettings.GossipAdvertiseInfo.AdvertiseInternalHttpPortAs, vNodeSettings.IntHttpPrefixes);
+					vNodeSettings.GossipAdvertiseInfo.AdvertiseInternalHttpPortAs, vNodeSettings.DisableFirstLevelHttpAuthorization, vNodeSettings.IntHttpPrefixes);
 				_internalHttpService.SetupController(adminController);
 				_internalHttpService.SetupController(pingController);
 				_internalHttpService.SetupController(infoController);

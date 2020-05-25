@@ -181,6 +181,12 @@ namespace EventStore.ClusterNode {
 				builder = builder.RunOnDisk(options.Db);
 			}
 
+			if (options.WriteStatsToDb) {
+				builder = builder.WithStatsStorage(StatsStorage.StreamAndFile);
+			} else {
+				builder = builder.WithStatsStorage(StatsStorage.File);
+			}
+
 			builder.WithInternalTcpOn(intTcp)
 				.WithInternalSecureTcpOn(intSecTcp)
 				.WithExternalTcpOn(extTcp)
@@ -215,7 +221,6 @@ namespace EventStore.ClusterNode {
 				.WithProjectionQueryExpirationOf(TimeSpan.FromMinutes(options.ProjectionsQueryExpiry))
 				.WithTfCachedChunks(options.CachedChunks)
 				.WithTfChunksCacheSize(options.ChunksCacheSize)
-				.WithStatsStorage(StatsStorage.StreamAndFile)
 				.AdvertiseInternalIPAs(options.IntIpAdvertiseAs)
 				.AdvertiseExternalIPAs(options.ExtIpAdvertiseAs)
 				.AdvertiseInternalHttpPortAs(options.IntHttpPortAdvertiseAs)
@@ -226,6 +231,7 @@ namespace EventStore.ClusterNode {
 				.AdvertiseExternalSecureTCPPortAs(options.ExtSecureTcpPortAdvertiseAs)
 				.HavingReaderThreads(options.ReaderThreadsCount)
 				.WithConnectionPendingSendBytesThreshold(options.ConnectionPendingSendBytesThreshold)
+				.WithConnectionQueueSizeThreshold(options.ConnectionQueueSizeThreshold)
 				.WithChunkInitialReaderCount(options.ChunkInitialReaderCount)
 				.WithInitializationThreads(options.InitializationThreads)
 				.WithMaxAutoMergeIndexLevel(options.MaxAutoMergeIndexLevel);
@@ -264,6 +270,8 @@ namespace EventStore.ClusterNode {
 				builder.DisableScavengeMerging();
 			if (options.LogHttpRequests)
 				builder.EnableLoggingOfHttpRequests();
+			if (options.LogFailedAuthenticationAttempts)
+				builder.EnableLoggingOfFailedAuthenticationAttempts();
 			if (options.EnableHistograms)
 				builder.EnableHistograms();
 			if (options.UnsafeIgnoreHardDelete)
@@ -298,6 +306,8 @@ namespace EventStore.ClusterNode {
 				builder.ReduceFileCachePressure();
 			if (options.StructuredLog)
 				builder.WithStructuredLogging(options.StructuredLog);
+			if(options.DisableFirstLevelHttpAuthorization)
+				builder.DisableFirstLevelHttpAuthorization();
 
 			if (options.IntSecureTcpPort > 0 || options.ExtSecureTcpPort > 0) {
 				if (!string.IsNullOrWhiteSpace(options.CertificateStoreLocation)) {

@@ -103,26 +103,14 @@ namespace EventStore.ClientAPI {
 						connectionSettings.ClientConnectionTimeout, connectionSettings.ClusterDns,
 						connectionSettings.GossipSeeds, connectionSettings.MaxDiscoverAttempts,
 						connectionSettings.ExternalGossipPort, connectionSettings.GossipTimeout,
-						connectionSettings.NodePreference);
+						connectionSettings.NodePreference, connectionSettings.CustomHttpClient);
 				}
 
 				if (scheme == "discover") {
 					var clusterSettings = new ClusterSettings(uri.Host, connectionSettings.MaxDiscoverAttempts,
 						uri.Port,
 						connectionSettings.GossipTimeout, connectionSettings.NodePreference);
-					Ensure.NotNull(connectionSettings, "connectionSettings");
-					Ensure.NotNull(clusterSettings, "clusterSettings");
-
-					var endPointDiscoverer = new ClusterDnsEndPointDiscoverer(connectionSettings.Log,
-						clusterSettings.ClusterDns,
-						clusterSettings.MaxDiscoverAttempts,
-						clusterSettings.ExternalGossipPort,
-						clusterSettings.GossipSeeds,
-						clusterSettings.GossipTimeout,
-						clusterSettings.NodePreference);
-
-					return new EventStoreNodeConnection(connectionSettings, clusterSettings, endPointDiscoverer,
-						connectionName);
+					return Create(connectionSettings, clusterSettings, connectionName);
 				}
 
 				if (scheme == "tcp") {
@@ -139,19 +127,7 @@ namespace EventStore.ClientAPI {
 					connectionSettings.MaxDiscoverAttempts,
 					connectionSettings.GossipTimeout,
 					connectionSettings.NodePreference);
-				Ensure.NotNull(connectionSettings, "connectionSettings");
-				Ensure.NotNull(clusterSettings, "clusterSettings");
-
-				var endPointDiscoverer = new ClusterDnsEndPointDiscoverer(connectionSettings.Log,
-					clusterSettings.ClusterDns,
-					clusterSettings.MaxDiscoverAttempts,
-					clusterSettings.ExternalGossipPort,
-					clusterSettings.GossipSeeds,
-					clusterSettings.GossipTimeout,
-					clusterSettings.NodePreference);
-
-				return new EventStoreNodeConnection(connectionSettings, clusterSettings, endPointDiscoverer,
-					connectionName);
+				return Create(connectionSettings, clusterSettings, connectionName);
 			}
 
 			throw new Exception($"Must specify uri or gossip seeds");
@@ -215,7 +191,7 @@ namespace EventStore.ClientAPI {
 		}
 
 		/// <summary>
-		/// Creates a new <see cref="IEventStoreConnection"/> to EventStore cluster 
+		/// Creates a new <see cref="IEventStoreConnection"/> to EventStore cluster
 		/// using specific <see cref="ConnectionSettings"/> and <see cref="ClusterSettings"/>
 		/// </summary>
 		/// <param name="connectionSettings">The <see cref="ConnectionSettings"/> to apply to the new connection</param>
